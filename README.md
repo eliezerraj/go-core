@@ -1,2 +1,3 @@
 # go-core
-go-core
+
+library go-core
