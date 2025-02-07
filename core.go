@@ -1,4 +1,4 @@
-package core
+package go-core
 
 import(
 	"log"
