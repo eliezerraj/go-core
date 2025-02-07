@@ -1,3 +1,3 @@
-module github/eliezerraj/go-core
+module github.com/eliezerraj/go-core
 
 go 1.23.3
