@@ -7,6 +7,8 @@ import(
 type ToolsCore struct {
 }
 
-func (t *ToolsCore) Test(){
-	log.Println("test")
+func (t *ToolsCore) Test() string{
+	log.Println("func ToolsCore - Test")
+
+	return "test-01"
 }
