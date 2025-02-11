@@ -7,13 +7,12 @@ import (
 	"encoding/json"
 )
 
-type CoreJson struct{
-}
-
 type JSONResponse struct {
-	Error   bool        `json:"error"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
+}
+
+type CoreJson struct{
 }
 
 func (c *CoreJson) ReadJSON(r *http.Request, w http.ResponseWriter, data interface{}) error {
@@ -49,4 +48,39 @@ func (c *CoreJson) WriteJSON(w http.ResponseWriter, code int, data interface{}) 
 		return err
 	}
 	return nil
+}
+
+/*func (c *CoreJson) ErrorJSON(w http.ResponseWriter, err error, status ...int) error {
+	statusCode := http.StatusBadRequest
+
+	if len(status) > 0 {
+		statusCode = status[0]
+	}
+
+	var payload JSONResponse
+	payload.Message = err.Error()
+
+	//return c.WriteJSON(w, statusCode, payload)
+}*/
+
+type APIError struct {
+	StatusCode	int  `json:"statusCode"`
+	Msg			string `json:"msg"`
+}
+
+func (e *APIError) Error() string {
+	return e.Msg
+}
+
+func (e *APIError) APIError(err error, status ...int) APIError {
+	statusCode := http.StatusBadRequest
+	
+	if len(status) > 0 {
+		statusCode = status[0]
+	}
+
+	return APIError{
+		StatusCode: statusCode,
+		Msg:		err.Error(),
+	}
 }

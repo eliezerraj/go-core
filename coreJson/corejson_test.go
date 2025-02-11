@@ -2,7 +2,7 @@ package coreJson
 
 import (
 	"testing"
-
+	"errors"
 	"bytes"
 	"net/http"
 	"net/http/httptest"
@@ -40,7 +40,6 @@ func TestCoreJson_WriteJSON(t *testing.T){
 
 	w := httptest.NewRecorder()
 	payload := JSONResponse{
-		Error:   false,
 		Message: "test WriteJSON",
 	}
 	
@@ -50,4 +49,12 @@ func TestCoreJson_WriteJSON(t *testing.T){
 	}
 
 	t.Logf("w: %v", w)
+}
+
+func TestCoreJson_APIError(t *testing.T){
+	var apiError APIError
+
+	e := apiError.APIError(errors.New("item not found"), http.StatusServiceUnavailable)
+
+	t.Logf("e: %v", e)
 }

@@ -7,4 +7,4 @@ A reusable Go module with commonly used tools.
 
 ## Installation
 
-`go get -u github.com/eliezerraj/go-core`
+go get -u github.com/eliezerraj/go-core

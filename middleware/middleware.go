@@ -2,10 +2,14 @@ package middleware
 
 import (	
 	"net/http"
+
+	"github.com/eliezerraj/go-core/coreJson"
 	"github.com/rs/zerolog/log"
 )
 
 var childLogger = log.With().Str("handler.utils", "middleware").Logger()
+var apiError coreJson.APIError
+var core_json coreJson.CoreJson
 
 type ToolsMiddleware struct {
 }
@@ -41,4 +45,16 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+type apiFunc func(w http.ResponseWriter, r *http.Request) error
+
+func MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		 if err := h(w, r); err != nil {
+			if e, ok := err.(apiError.APIError); ok{
+				core_json.WriteJSON(w, e.StatusCode, e)
+			}
+		 }
+	 }
 }
