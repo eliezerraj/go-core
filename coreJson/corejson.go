@@ -68,11 +68,11 @@ type APIError struct {
 	Msg			string `json:"msg"`
 }
 
-func (e APIError) Error() string {
+func (e *APIError) Error() string {
 	return e.Msg
 }
 
-func (e APIError) APIError(err error, status ...int) APIError {
+func (e *APIError) APIError(err error, status ...int) APIError {
 	statusCode := http.StatusBadRequest
 	
 	if len(status) > 0 {
