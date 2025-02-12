@@ -38,7 +38,7 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
-func MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
+func (t *ToolsMiddleware) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
 			//if e, ok := err.(api_Error.Error); ok{
