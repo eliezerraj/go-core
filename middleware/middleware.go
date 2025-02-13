@@ -7,9 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var childLogger = log.With().Str("handler.utils", "middleware").Logger()
-
-var api_Error coreJson.APIError
+var childLogger = log.With().Str("go-core", "middleware").Logger()
 var core_json coreJson.CoreJson
 
 type ToolsMiddleware struct {
@@ -40,10 +38,13 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
 func (t *ToolsMiddleware) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		childLogger.Debug().Msg("---ERROR---- MiddleWareErrorHandler (INICIO)  --------------")
 		if err := h(w, r); err != nil {
-			//if e, ok := err.(api_Error.Error); ok{
-			//	core_json.WriteJSON(w, e.StatusCode, e)
-			//}
+			childLogger.Error().Err(err).Msg("MiddleWareErrorHandler")
+			if e, ok := err.(*coreJson.APIError); ok{
+				core_json.WriteJSON(w, e.StatusCode, e)
+			}
 		}
+		childLogger.Debug().Msg("---ERROR---- MiddleWareErrorHandler (FIM)  --------------")
 	 }
 }
