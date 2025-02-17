@@ -40,7 +40,6 @@ func (t *ToolsMiddleware) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		childLogger.Debug().Msg("---ERROR---- MiddleWareErrorHandler (INICIO)  --------------")
 		if err := h(w, r); err != nil {
-			childLogger.Error().Err(err).Msg("MiddleWareErrorHandler")
 			if e, ok := err.(*coreJson.APIError); ok{
 				core_json.WriteJSON(w, e.StatusCode, e)
 			}
