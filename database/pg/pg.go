@@ -4,10 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
-
 	//"github.com/go-payment/internal/lib"
-	//"github.com/go-payment/internal/core"
-
 	"github.com/rs/zerolog/log"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -73,7 +70,7 @@ func Config(database_url string) (*pgxpool.Config) {
 	return dbConfig
 }
 
-func NewDatabasePGServer(ctx context.Context, databaseConfig DatabaseConfig) (DatabasePGServer, error) {
+func (d DatabasePGServer) NewDatabasePGServer(ctx context.Context, databaseConfig DatabaseConfig) (DatabasePGServer, error) {
 	childLogger.Debug().Msg("NewDatabasePGServer")
 	
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", 
