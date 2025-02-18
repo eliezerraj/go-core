@@ -10,6 +10,7 @@ A reusable Go module with commonly used tools.
     - GetConnection
     - CloseConnection
     - StartTx
+    - ReleaseTx
 - middleware
     - MiddleWareHandlerHeader
     - MiddleWareErrorHandler

@@ -139,3 +139,9 @@ func (d DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, e
 
 	return tx, conn, nil
 }
+
+func (d DatabasePGServer) ReleaseTx(connection *pgxpool.Conn) {
+	childLogger.Debug().Msg("ReleaseTx")
+
+	defer connection.Release()
+}
