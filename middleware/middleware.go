@@ -38,12 +38,12 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
 func (t *ToolsMiddleware) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		childLogger.Debug().Msg("---ERROR---- MiddleWareErrorHandler (INICIO)  --------------")
+		childLogger.Debug().Msg("------- MiddleWareErrorHandler (INICIO - ERROR)  --------------")
 		if err := h(w, r); err != nil {
 			if e, ok := err.(*coreJson.APIError); ok{
 				core_json.WriteJSON(w, e.StatusCode, e)
 			}
 		}
-		childLogger.Debug().Msg("---ERROR---- MiddleWareErrorHandler (FIM)  --------------")
+		childLogger.Debug().Msg("------- MiddleWareErrorHandler (FIM - ERROR)  --------------")
 	 }
 }

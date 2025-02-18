@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"errors"
 	"github.com/rs/zerolog/log"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,6 +27,7 @@ type DatabasePG interface {
 	GetConnection() (*pgxpool.Pool)
 	Acquire(context.Context) (*pgxpool.Conn, error)
 	Release(*pgxpool.Conn)
+	CloseConnection()
 }
 
 type DatabasePGServer struct {
@@ -119,4 +121,21 @@ func (d DatabasePGServer) GetConnection() (*pgxpool.Pool) {
 func (d DatabasePGServer) CloseConnection() {
 	childLogger.Debug().Msg("CloseConnection")
 	defer d.connPool.Close()
+}
+
+func (d DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, error) {
+	childLogger.Debug().Msg("StartTx")
+
+	conn, err := d.Acquire(ctx)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error acquire")
+		return nil, nil, errors.New(err.Error())
+	}
+	
+	tx, err := conn.Begin(ctx)
+    if err != nil {
+        return nil, nil ,errors.New(err.Error())
+    }
+
+	return tx, conn, nil
 }
