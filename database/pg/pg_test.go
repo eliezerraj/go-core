@@ -8,6 +8,7 @@ import (
 
 func TestGoCore_DatabasePGServer(t *testing.T){
 	var databasePGServer DatabasePGServer
+
 	databaseConfig := DatabaseConfig{
 		Host: "127.0.0.1", 				
 		Port: "5432", 				
@@ -27,5 +28,12 @@ func TestGoCore_DatabasePGServer(t *testing.T){
 		t.Errorf("failed to open database : %s", err)
 	}
 
+	_, conn, err := databasePG.StartTx(ctx)
+	if err != nil {
+		t.Errorf("failed to starttx : %s", err)
+	}
+
+	databasePG.ReleaseTx(conn)
+	
 	t.Logf("databasePG: %v", databasePG)
 }

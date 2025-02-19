@@ -120,3 +120,20 @@ func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
 
 	return span
 }
+
+func (t *TracerProvider) SpanCtx(ctx context.Context, spanName string) (context.Context, trace.Span) {
+	cID, rID := "unknown", "unknown"
+
+	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
+	
+	ctx, span := tracer.Start(
+							ctx,
+							spanName,
+							trace.WithSpanKind(trace.SpanKindConsumer),
+							trace.WithAttributes(
+								attribute.String("id", cID),
+								attribute.String("request_id", rID)),
+	)
+
+	return ctx, span
+}
