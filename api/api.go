@@ -12,6 +12,13 @@ import(
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+var (
+	ErrNotFound 		= errors.New("item not found")
+	ErrUnauthorized 	= errors.New("not authorized")
+	ErrServer		 	= errors.New("server identified error")
+	ErrHTTPForbiden		= errors.New("forbiden request")
+)
+
 var childLogger = log.With().Str("go-core", "api").Logger()
 
 type ApiService struct {
@@ -73,16 +80,16 @@ func (a *ApiService) CallApi(ctx context.Context,
 	
 	switch (resp.StatusCode) {
 		case 401:
-			return nil, http.StatusUnauthorized, nil
+			return nil, http.StatusUnauthorized, ErrUnauthorized
 		case 403:
-			return nil, http.StatusForbidden, nil
+			return nil, http.StatusForbidden, ErrHTTPForbiden
 		case 200:
 		case 400:
-			return nil, http.StatusNotFound, nil
+			return nil, http.StatusNotFound, ErrNotFound
 		case 404:
-			return nil, http.StatusNotFound, nil
+			return nil, http.StatusNotFound, ErrNotFound
 		default:
-			return nil, http.StatusInternalServerError, nil
+			return nil, http.StatusInternalServerError, ErrServer
 	}
 
 	result := body
