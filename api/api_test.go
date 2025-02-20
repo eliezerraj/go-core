@@ -21,7 +21,7 @@ func TestGoCore_Api(t *testing.T){
 
 	res, statusCode, err := apiService.CallApi(ctx, url, method, &header_x_apigw_api_id, &header_authorization, nil)
 	if err != nil {
-		t.Errorf("failed to open database : %s", err)
+		t.Errorf("err : %s", err)
 	}
 	t.Logf("statusCode: %v", statusCode)
 	t.Logf("res: %v", res)
@@ -32,9 +32,21 @@ func TestGoCore_Api(t *testing.T){
 
 	res, statusCode, err = apiService.CallApi(ctx, url, method, &header_x_apigw_api_id, &header_authorization, payload)
 	if err != nil {
-		t.Errorf("failed to open database : %s", err)
+		t.Errorf("err : %s", err)
 	}
 
+	t.Logf("statusCode: %v", statusCode)
+	t.Logf("res: %v", res)
+
+	url = "https://go-login.architecture.caradhras.io/loginRSA"
+	method = "POST"
+	payload = map[string]string{"user":"admin1","password":"admin"}
+
+	res, statusCode, err = apiService.CallApi(ctx, url, method, &header_x_apigw_api_id, &header_authorization, payload)
+	if err == nil {
+		t.Errorf("err : %s", err)
+	}
+	t.Logf("err : %s", err)
 	t.Logf("statusCode: %v", statusCode)
 	t.Logf("res: %v", res)
 }

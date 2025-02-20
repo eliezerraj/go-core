@@ -36,11 +36,11 @@ func (a *ApiService) CallApi(ctx context.Context,
 							method string,
 							header_x_apigw_api_id *string,
 							header_authorization *string,
-							body interface{}) (interface{}, int ,error){
+							body interface{}) (interface{}, int, error){
 
 	childLogger.Debug().Msg("CallApi")
 	childLogger.Debug().Msg("--------------------------")
-	childLogger.Debug().Interface("method/url/x_apigw_api_id : ", url +"/"+method+"/").Msg("")
+	childLogger.Debug().Interface("method:url:x_apigw_api_id : ", url + " " + method + " " + *header_x_apigw_api_id).Msg("")
 	childLogger.Debug().Interface("body : ", body).Msg("")
 	childLogger.Debug().Msg("--------------------------")
 
