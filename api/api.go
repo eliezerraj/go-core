@@ -59,7 +59,7 @@ func (a *ApiService) CallApi(ctx context.Context,
 	req, err := http.NewRequestWithContext(ctx, method, url, payload)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("error NewRequestWithContext")
-		return nil, http.StatusInternalServerError ,errors.New(err.Error())
+		return nil, http.StatusBadGateway, errors.New(err.Error())
 	}
 
 	req.Header.Add("Content-Type", "application/json;charset=UTF-8");
@@ -72,12 +72,11 @@ func (a *ApiService) CallApi(ctx context.Context,
 
 	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
-		childLogger.Error().Err(err).Msg("error client.Do")
-		return nil, http.StatusInternalServerError, errors.New(err.Error())
+		childLogger.Error().Err(err).Msg("error client.do")
+		return nil, http.StatusServiceUnavailable, errors.New(err.Error())
 	}
 
 	childLogger.Debug().Int("StatusCode :", resp.StatusCode).Msg("")
-	
 	switch (resp.StatusCode) {
 		case 401:
 			return nil, http.StatusUnauthorized, ErrUnauthorized
