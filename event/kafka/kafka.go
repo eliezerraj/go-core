@@ -1,6 +1,7 @@
 package kafka
 
 import(
+	"context"
 	"github.com/rs/zerolog/log"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -60,6 +61,53 @@ func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurati
 	return &ProducerWorker{ kafkaConfigurations : kafkaConfigurations,
 							producer : producer,
 	}, nil
+}
+
+func (p *ProducerWorker) Producer(ctx context.Context, 
+									event_topic string, 
+									key string,
+									payload []byte) (error){
+	childLogger.Debug().Msg("Producer")
+
+	deliveryChan := make(chan kafka.Event)
+	err := p.producer.Produce(&kafka.Message {
+												TopicPartition: kafka.TopicPartition{	
+												Topic: &event_topic, 
+												Partition: kafka.PartitionAny,
+											},
+												Key:    []byte(key),											
+												Value: 	payload, 
+												Headers:  []kafka.Header{	
+																			{
+																				Key: "RequesId",
+																				Value: []byte(key), 
+																			},
+																		},
+								},deliveryChan)
+	if err != nil {
+		return err
+	}
+
+	e := <-deliveryChan
+	m := e.(*kafka.Message)
+
+	if m.TopicPartition.Error != nil {
+		childLogger.Debug().Msg("+ ERROR + + ERROR + +  ERROR +")	
+		childLogger.Error().Err(m.TopicPartition.Error).Msg("delivery failed")
+		childLogger.Debug().Msg("+ ERROR + + ERROR + +  ERROR +")
+		
+		return m.TopicPartition.Error
+	}
+
+	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")		
+	childLogger.Debug().Msg("Delivered message to topic")
+	childLogger.Debug().Interface("topic    : ",*m.TopicPartition.Topic).Msg("")
+	childLogger.Debug().Interface("partition: ", m.TopicPartition.Partition).Msg("")
+	childLogger.Debug().Interface("offset   : ",m.TopicPartition.Offset).Msg("")
+	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")	
+
+	close(deliveryChan)
+	return nil
 }
 
 func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurations) (*ConsumerWorker, error) {

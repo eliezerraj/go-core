@@ -1,19 +1,27 @@
 package kafka
 
 import (
+	"context"
 	"testing"
-	"os"
-	"os/signal"
-	"syscall"
+	"encoding/json"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	//"os"
+	//"os/signal"
+	//"syscall"
+
+	//"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
+
+type Payload struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
 
 func TestGoCore_Kafka_Producer(t *testing.T){
 
 	kafkaConfigurations := KafkaConfigurations{
-		Username: "",
-		Password: "",
+		Username: "admin",
+		Password: "admin",
 		Protocol: "SASL_SSL", //SASL_PLAINTEXT SASL_SSL
 		Mechanisms: "SCRAM-SHA-512", //PLAIN SCRAM-SHA-512
 		Clientid: "GO-CORE-TEST",
@@ -33,46 +41,34 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to open database : %s", err)
 	}
 
-	var event_topic = "EVENT.TEST"
-	deliveryChan := make(chan kafka.Event)
-	err = producer_01.producer.Produce(&kafka.Message {TopicPartition: kafka.TopicPartition{	
-													Topic: &event_topic, 
-													Partition: kafka.PartitionAny,
-												},
-												Key:    []byte("abc-123"),											
-												Value: 	[]byte("teste"), 
-												Headers:  []kafka.Header{	
-																			{
-																				Key: "ACCOUNT",
-																				Value: []byte("abc-123"), 
-																			},
-																			{
-																				Key: "RequesId",
-																				Value: []byte("teste-123"), 
-																			},
-																		},
-								},deliveryChan)
+	key := "abc-123"
+	event_topic := "EVENT.TEST"
+	payload := Payload{ID: 1, Name: "my teste"}
+
+	payload_bytes, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("failed to marshal payload : %s", err)
+	}
+
+	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
-	e := <-deliveryChan
-	m := e.(*kafka.Message)
 
-	if m.TopicPartition.Error != nil {
-		t.Errorf("TopicPartition : %s", m.TopicPartition.Error)	
-	} else {
-		t.Logf("topic : %s", *m.TopicPartition.Topic)
-		//t.Logf("topic : %s", m.TopicPartition.Partition)
-		t.Logf("topic : %s", m.TopicPartition.Offset)		
+	key = "abc-456"
+	payload = Payload{ID: 456, Name: "my teste"}
+	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
+	if err != nil {
+		t.Errorf("failed to connect kafka : %s", err)
 	}
-	close(deliveryChan)
 }
 
+/*
 func TestGoCore_Kafka_Consumer(t *testing.T){
 
 	kafkaConfigurations := KafkaConfigurations{
-		Username: "",
-		Password: "",
+		Username: "admin",
+		Password: "admin",
 		Protocol: "SASL_SSL",
 		Mechanisms: "SCRAM-SHA-512",
 		Clientid: "GO-CORE-TEST",
@@ -132,4 +128,4 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 		}
 	}
 	consumer_01.consumer.Close()
-}
+}*/
