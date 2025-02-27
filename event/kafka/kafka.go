@@ -2,6 +2,10 @@ package kafka
 
 import(
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/rs/zerolog/log"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -139,4 +143,60 @@ func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurati
 	return &ConsumerWorker{ kafkaConfigurations: kafkaConfigurations,
 							consumer: 		consumer,
 	}, nil
+}
+
+func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string ) {
+	childLogger.Debug().Msg("Consumer")
+
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
+
+	defer func() { 
+		childLogger.Debug().Msg("Closing consumer waiting please !!!")
+		close(messages)
+		c.consumer.Close()
+	}()
+
+	err := c.consumer.SubscribeTopics(event_topic, nil)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Failed to subscriber topic")
+	}
+
+	run := true
+	for run {
+		select {
+			case sig := <-sigchan:
+				childLogger.Debug().Interface("Caught signal terminating: ", sig).Msg("")
+				run = false
+			default:
+				ev := c.consumer.Poll(100)
+				if ev == nil {
+					continue
+				}
+			switch e := ev.(type) {
+				case kafka.AssignedPartitions:
+					c.consumer.Assign(e.Partitions)
+				case kafka.RevokedPartitions:
+					c.consumer.Unassign()	
+				case kafka.PartitionEOF:
+					childLogger.Error().Interface("kafka.PartitionEOF: ",e).Msg("")
+				case *kafka.Message:
+					log.Print("----------------------------------")
+					if e.Headers != nil {
+						log.Printf("Headers: %v\n", e.Headers)
+					}
+					log.Print("Value : " ,string(e.Value))
+
+					messages <- string(e.Value)
+					log.Print("-----------------------------------")
+				case kafka.Error:
+					childLogger.Error().Err(e).Msg("kafka.Error")
+					if e.Code() == kafka.ErrAllBrokersDown {
+						run = false
+					}
+				default:
+					childLogger.Debug().Interface("default: ",e).Msg("Ignored")
+			}
+		}
+	}
 }

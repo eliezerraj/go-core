@@ -4,12 +4,6 @@ import (
 	"context"
 	"testing"
 	"encoding/json"
-
-	//"os"
-	//"os/signal"
-	//"syscall"
-
-	//"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 type Payload struct {
@@ -57,13 +51,18 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 
 	key = "abc-456"
 	payload = Payload{ID: 456, Name: "my teste"}
+	payload_bytes, err = json.Marshal(payload)
+	if err != nil {
+		t.Errorf("failed to marshal payload : %s", err)
+	}
+
 	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
 }
 
-/*
+
 func TestGoCore_Kafka_Consumer(t *testing.T){
 
 	kafkaConfigurations := KafkaConfigurations{
@@ -88,44 +87,12 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 		t.Errorf("failed to connect kafka : %s", err)
 	}
 
-	topics := []string{"EVENT.TEST"}
-	err = consumer_01.consumer.SubscribeTopics(topics, nil)
-	if err != nil {
-		t.Errorf("failed to subscribeTopics : %s", err)
-	}
+	event_topics := []string{"EVENT.TEST"}
+	messages := make(chan string)
 
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
-	run := true
-	for run {
-		select {
-		case sig := <-sigchan:
-			t.Logf("Caught signal terminating: : %s", sig)
-			run = false
-		default:
-			ev := consumer_01.consumer.Poll(100)
-			if ev == nil {
-				continue
-			}
-		switch e := ev.(type) {
-			case kafka.AssignedPartitions:
-				consumer_01.consumer.Assign(e.Partitions)
-			case kafka.RevokedPartitions:
-				consumer_01.consumer.Unassign()	
-			case kafka.PartitionEOF:
-				t.Logf("kafka.PartitionEOF: : %s", e)
-			case *kafka.Message:
-				t.Logf("kafka.Message: : %s", string(e.Value))
-				run = false
-			case kafka.Error:
-				t.Errorf("failed to kafka.Error : %s", e)
-				if e.Code() == kafka.ErrAllBrokersDown {
-					run = false
-				}
-			default:
-				t.Logf("default : %s", e)
-		}
-		}
+	go consumer_01.Consumer(event_topics, messages)
+
+	for msg := range messages {
+		t.Logf("=====>>>>> Received message: %v", msg)
 	}
-	consumer_01.consumer.Close()
-}*/
+}
