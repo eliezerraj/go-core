@@ -114,6 +114,17 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 	return nil
 }
 
+func (p *ProducerWorker) InitTransactions(ctx context.Context) error{
+	childLogger.Debug().Msg("InitTransactions")
+
+	err := p.producer.InitTransactions(ctx);
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Failed to InitTransactions")
+		return err
+	}
+	return nil
+}
+
 func (p *ProducerWorker) BeginTransaction() error{
 	childLogger.Debug().Msg("BeginTransaction")
 
