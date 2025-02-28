@@ -202,7 +202,7 @@ func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string 
 }
 
 func (c *ConsumerWorker) Commit(){
-	childLogger.Debug().Msg("Consumer")
+	childLogger.Debug().Msg("Commit")
 	
 	c.consumer.Commit()
 }
