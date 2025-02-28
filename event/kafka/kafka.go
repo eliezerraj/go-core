@@ -53,7 +53,8 @@ func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurati
 								"message.timeout.ms":			5000,
 								"retries":						5,
 								"retry.backoff.ms":				500,
-								"enable.idempotence":			true,                     
+								"enable.idempotence":			true,
+								"go.logs.channel.enable": 		true,                    
 								}
 
 	producer, err := kafka.NewProducer(config)
@@ -61,7 +62,37 @@ func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurati
 		childLogger.Error().Err(err).Msg("Failed to create producer:")
 		return nil, err
 	}
+	
+	return &ProducerWorker{ kafkaConfigurations : kafkaConfigurations,
+							producer : producer,
+	}, nil
+}
 
+func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations) (*ProducerWorker, error) {
+	childLogger.Debug().Msg("NewProducerWorkerTX")
+
+	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
+	
+	config := &kafka.ConfigMap{	"bootstrap.servers":            kafkaBrokerUrls,
+								"security.protocol":            kafkaConfigurations.Protocol, //"SASL_SSL",
+								"sasl.mechanisms":              kafkaConfigurations.Mechanisms, //"SCRAM-SHA-256",
+								"sasl.username":                kafkaConfigurations.Username,
+								"sasl.password":                kafkaConfigurations.Password,
+								"acks": 						"all", // acks=0  acks=1 acks=all
+								"message.timeout.ms":			5000,
+								"retries":						5,
+								"retry.backoff.ms":				500,
+								"enable.idempotence":			true,
+								"go.logs.channel.enable": 		true, 
+								"transactional.id":       		"go-core-trx",                      
+								}
+
+	producer, err := kafka.NewProducer(config)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Failed to create producerTX:")
+		return nil, err
+	}
+	
 	return &ProducerWorker{ kafkaConfigurations : kafkaConfigurations,
 							producer : producer,
 	}, nil
