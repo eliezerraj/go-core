@@ -152,9 +152,9 @@ func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string 
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
 	defer func() { 
-		childLogger.Debug().Msg("Closing consumer waiting please !!!")
 		close(messages)
 		c.consumer.Close()
+		childLogger.Debug().Msg("Closed consumer waiting please !!!")
 	}()
 
 	err := c.consumer.SubscribeTopics(event_topic, nil)
@@ -181,14 +181,14 @@ func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string 
 				case kafka.PartitionEOF:
 					childLogger.Error().Interface("kafka.PartitionEOF: ",e).Msg("")
 				case *kafka.Message:
-					log.Print("----------------------------------")
+					childLogger.Print("----------------------------------")
 					if e.Headers != nil {
-						log.Printf("Headers: %v\n", e.Headers)
+						childLogger.Printf("Headers: %v\n", e.Headers)
 					}
-					log.Print("Value : " ,string(e.Value))
+					childLogger.Print("Value : " ,string(e.Value))
 
 					messages <- string(e.Value)
-					log.Print("-----------------------------------")
+					childLogger.Print("-----------------------------------")
 				case kafka.Error:
 					childLogger.Error().Err(e).Msg("kafka.Error")
 					if e.Code() == kafka.ErrAllBrokersDown {
@@ -199,4 +199,10 @@ func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string 
 			}
 		}
 	}
+}
+
+func (c *ConsumerWorker) Commit(){
+	childLogger.Debug().Msg("Consumer")
+	
+	c.consumer.Commit()
 }

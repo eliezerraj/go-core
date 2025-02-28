@@ -94,5 +94,6 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 
 	for msg := range messages {
 		t.Logf("=====>>>>> Received message: %v", msg)
+		consumer_01.Commit()
 	}
 }
