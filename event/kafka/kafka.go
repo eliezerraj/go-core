@@ -114,6 +114,39 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 	return nil
 }
 
+func (p *ProducerWorker) BeginTransaction() error{
+	childLogger.Debug().Msg("BeginTransaction")
+
+	err := p.producer.BeginTransaction();
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Failed to BeginTransaction")
+		return err
+	}
+	return nil
+}
+
+func (p *ProducerWorker) CommitTransaction(ctx context.Context) error{
+	childLogger.Debug().Msg("CommitTransaction")
+
+	err := p.producer.CommitTransaction(ctx);
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Failed to CommitTransaction")
+		return err
+	}
+	return nil
+}
+
+func (p *ProducerWorker) AbortTransaction(ctx context.Context) error{
+	childLogger.Debug().Msg("AbortTransaction")
+
+	err := p.producer.AbortTransaction(ctx);
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Failed to AbortTransaction")
+		return err
+	}
+	return nil
+}
+
 func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurations) (*ConsumerWorker, error) {
 	childLogger.Debug().Msg("NewConsumerWorker")
 
