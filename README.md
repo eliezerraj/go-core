@@ -17,6 +17,9 @@ A reusable Go module with commonly used tools.
 - middleware
     - Event
     - Span
+- cache/redis
+    - Set
+    - Get
 
 ## Installation
 
