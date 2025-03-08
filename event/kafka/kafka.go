@@ -1,10 +1,12 @@
 package kafka
 
 import(
+	"fmt"
 	"context"
 	"os"
 	"os/signal"
 	"syscall"
+	"math/rand/v2"
 
 	"github.com/rs/zerolog/log"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -84,7 +86,7 @@ func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigura
 								"retry.backoff.ms":				500,
 								"enable.idempotence":			true,
 								"go.logs.channel.enable": 		true, 
-								"transactional.id":       		"go-core-trx",                      
+								"transactional.id":       		fmt.Sprintf("go-core-trx-%v", rand.IntN(1000)),                      
 								}
 
 	producer, err := kafka.NewProducer(config)
@@ -137,6 +139,7 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")		
 	childLogger.Debug().Msg("Delivered message to topic")
 	childLogger.Debug().Interface("topic    : ",*m.TopicPartition.Topic).Msg("")
+	childLogger.Debug().Interface("key      : ",key).Msg("")
 	childLogger.Debug().Interface("partition: ", m.TopicPartition.Partition).Msg("")
 	childLogger.Debug().Interface("offset   : ",m.TopicPartition.Offset).Msg("")
 	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")	

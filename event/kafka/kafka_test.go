@@ -44,7 +44,7 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -56,7 +56,7 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -104,7 +104,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		t.Errorf("failed to InitTransactions kafka : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic,key, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -116,7 +116,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), key, event_topic, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
