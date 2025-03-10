@@ -13,6 +13,7 @@ var core_json coreJson.CoreJson
 type ToolsMiddleware struct {
 }
 
+// About middleware http header
 func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader (INICIO)  --------------")
@@ -36,6 +37,7 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
+// About middleware http error header
 func (t *ToolsMiddleware) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		childLogger.Debug().Msg("------- MiddleWareErrorHandler (INICIO - ERROR)  --------------")

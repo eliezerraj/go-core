@@ -55,10 +55,11 @@ func buildResources(ctx context.Context, infoTrace *InfoTrace) (*resource.Resour
 	)
 }
 
+// About create a http tracer provider
 func (t *TracerProvider) NewTracerProvider(	ctx context.Context, 
 											configOTEL *ConfigOTEL, 
 											infoTrace 	*InfoTrace) *sdktrace.TracerProvider {
-	log.Debug().Msg("NewTracerProvider")
+	childLogger.Debug().Msg("NewTracerProvider")
 
 	var authOption otlptracegrpc.Option
 	authOption = otlptracegrpc.WithInsecure()
@@ -77,12 +78,12 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 		),
 	)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to create OTEL trace exporter")
+		childLogger.Error().Err(err).Msg("failed to create OTEL trace exporter")
 	}
 
 	resources, err := buildResources(ctx, infoTrace)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load OTEL resource")
+		childLogger.Error().Err(err).Msg("failed to load OTEL resource")
 	}
 
 	tp := sdktrace.NewTracerProvider(
@@ -94,10 +95,12 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 	return tp
 }
 
+// About create a event
 func (t *TracerProvider) Event(span trace.Span, attributeSpan string) {
 	span.AddEvent("Executing SQL query", trace.WithAttributes(attribute.String("db.statement", attributeSpan)))
 }
 
+// About create a span
 func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
 	cID, rID := "unknown", "unknown"
 	/*if id, ok := logger.ClientUUID(ctx); ok {
@@ -121,6 +124,7 @@ func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
 	return span
 }
 
+// About create a span and return the context
 func (t *TracerProvider) SpanCtx(ctx context.Context, spanName string) (context.Context, trace.Span) {
 	cID, rID := "unknown", "unknown"
 

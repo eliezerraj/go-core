@@ -1,6 +1,16 @@
 # go-core
 
 A reusable Go module with commonly used tools.
+- api
+    - Make REST call
+- cache (redis cluster)
+    - Get
+    - SetCount
+    - GetCount
+    - Set
+- cert
+    - ParsePemToRSAPriv
+    - ParsePemToRSAPub
 - coreJson
     - Read JSON
     - Write JSON
@@ -11,15 +21,23 @@ A reusable Go module with commonly used tools.
     - CloseConnection
     - StartTx
     - ReleaseTx
+- event
+    - Producer
+    - InitTransactions
+    - BeginTransaction
+    - CommitTransaction
+    - AbortTransaction
+    - Consumer
+    - Commit
 - middleware
     - MiddleWareHandlerHeader
     - MiddleWareErrorHandler
-- middleware
+- observability
     - Event
     - Span
-- cache/redis
-    - Set
-    - Get
+    - SpanCtx
+- tools
+    - ConvertToDate
 
 ## Installation
 
