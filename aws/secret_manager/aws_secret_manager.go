@@ -1,4 +1,4 @@
-package aws_secret_manager
+package secret_manager
 
 import (
 	"context"
@@ -10,21 +10,23 @@ import (
 
 var childLogger = log.With().Str("go-core.aws", "aws_secret_manager").Logger()
 
-type AwsClientSecretManager struct {
+type AwsSecretManager struct {
 	Client *secretsmanager.Client
 }
 
-func (p *AwsClientSecretManager) NewAwsClientSecretManager(configAWS *aws.Config) (*AwsClientSecretManager, error) {
-	childLogger.Debug().Msg("NewClientSecretManager")
+// About create a new client
+func (p *AwsSecretManager) NewAwsSecretManager(configAWS *aws.Config) (*AwsSecretManager, error) {
+	childLogger.Debug().Msg("NewAwsSecretManager")
 		
 	client := secretsmanager.NewFromConfig(*configAWS)
 
-	return &AwsClientSecretManager{
+	return &AwsSecretManager{
 		Client: client,
 	}, nil
 }
 
-func (p *AwsClientSecretManager) GetSecret(ctx context.Context, secretName string) (*string, error) {
+// About get a secret
+func (p *AwsSecretManager) GetSecret(ctx context.Context, secretName string) (*string, error) {
 	childLogger.Debug().Msg("GetSecret")
 
 	result, err := p.Client.GetSecretValue(ctx, 

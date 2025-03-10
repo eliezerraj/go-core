@@ -1,4 +1,4 @@
-package aws_parameter_store
+package parameter_store
 
 import (
 	"context"
@@ -10,20 +10,22 @@ import (
 
 var childLogger = log.With().Str("go-core.aws", "aws_parameter_store").Logger()
 
-type AwsClientParameterStore struct {
+type AwsParameterStore struct {
 	Client *ssm.Client
 }
 
-func (p *AwsClientParameterStore) NewClientParameterStore(configAWS *aws.Config) (*AwsClientParameterStore, error) {
-	childLogger.Debug().Msg("NewClientParameterStore")
+// About create a new client
+func (p *AwsParameterStore) NewAwsParameterStore(configAWS *aws.Config) (*AwsParameterStore, error) {
+	childLogger.Debug().Msg("NewAwsParameterStore")
 
 	client := ssm.NewFromConfig(*configAWS)
-	return &AwsClientParameterStore{
+	return &AwsParameterStore{
 		Client: client,
 	}, nil
 }
 
-func (p *AwsClientParameterStore) GetParameter(ctx context.Context, parameterName string) (*string, error) {
+// About get a parameter
+func (p *AwsParameterStore) GetParameter(ctx context.Context, parameterName string) (*string, error) {
 	childLogger.Debug().Msg("GetParameter")
 
 	result, err := p.Client.GetParameter(ctx, 
