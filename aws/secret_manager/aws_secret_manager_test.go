@@ -17,10 +17,7 @@ func TestCore_SecretManager(t *testing.T){
 		t.Errorf("failed to get aws_config : %s", err)
 	}
 
-	workerSecretManager, err := awsSecretManager.NewAwsSecretManager(aws_config)
-	if err != nil {
-		t.Errorf("failed create a NewAwsSecretManager : %s", err)
-	}
+	workerSecretManager:= awsSecretManager.NewAwsSecretManager(aws_config)
 
 	secretName := "key-jwt-auth"
 	secret, err := workerSecretManager.GetSecret(context.Background(), secretName)

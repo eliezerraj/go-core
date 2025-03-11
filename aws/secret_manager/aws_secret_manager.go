@@ -15,14 +15,14 @@ type AwsSecretManager struct {
 }
 
 // About create a new client
-func (p *AwsSecretManager) NewAwsSecretManager(configAWS *aws.Config) (*AwsSecretManager, error) {
+func (p *AwsSecretManager) NewAwsSecretManager(configAWS *aws.Config) (*AwsSecretManager) {
 	childLogger.Debug().Msg("NewAwsSecretManager")
 		
 	client := secretsmanager.NewFromConfig(*configAWS)
 
 	return &AwsSecretManager{
 		Client: client,
-	}, nil
+	}
 }
 
 // About get a secret

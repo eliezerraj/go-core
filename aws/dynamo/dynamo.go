@@ -17,14 +17,14 @@ type DatabaseDynamo struct {
 	Client 		*dynamodb.Client
 }
 
-func (d* DatabaseDynamo) NewDatabaseDynamo(configAWS *aws.Config) (*DatabaseDynamo, error){
+func (d* DatabaseDynamo) NewDatabaseDynamo(configAWS *aws.Config) (*DatabaseDynamo){
 	childLogger.Debug().Msg("NewDatabaseDynamo")
 
 	client := dynamodb.NewFromConfig(*configAWS)
 
 	return &DatabaseDynamo {
 		Client: client,
-	}, nil
+	}
 }
 
 // About query item in Dynamo

@@ -29,13 +29,10 @@ func TestCore_Dynamo(t *testing.T){
 		t.Errorf("failed to get aws_config : %s", err)
 	}
 
-	dynamoDB, err := databaseDynamo.NewDatabaseDynamo(aws_config)
-	if err != nil {
-		t.Errorf("failed create a NewDatabaseDynamo : %s", err)
-	}
+	dynamoDB := databaseDynamo.NewDatabaseDynamo(aws_config)
 
 	tableName := "user_login_2"
-	id := "USER-admin1"
+	id := "USER-admin"
 	sk := "USER-admin"
 
 	result, err := dynamoDB.QueryInput(context.Background(), &tableName, id, sk )
@@ -43,7 +40,7 @@ func TestCore_Dynamo(t *testing.T){
 		t.Errorf("failed QueryInput : %s", err)
 	}
 	if len(result) == 0 {
-		t.Errorf("Not Found")
+		t.Errorf("Data Not Found")
 		return
 	}
 
@@ -63,5 +60,18 @@ func TestCore_Dynamo(t *testing.T){
 	err = dynamoDB.PutItem(context.Background(), &tableName, credential_input )
 	if err != nil {
 		t.Errorf("failed PutItem : %s", err)
+	}
+
+	tableName = "user_login_2"
+	id = "USER-admin"
+	sk = "USER"
+
+	result, err = dynamoDB.QueryInput(context.Background(), &tableName, id, sk )
+	if err != nil {
+		t.Errorf("failed QueryInput : %s", err)
+	}
+	if len(result) == 0 {
+		t.Errorf("Data Not Found")
+		return
 	}
 }
