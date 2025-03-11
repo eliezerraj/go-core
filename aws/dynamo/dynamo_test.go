@@ -35,12 +35,16 @@ func TestCore_Dynamo(t *testing.T){
 	}
 
 	tableName := "user_login_2"
-	id := "USER-admin"
+	id := "USER-admin1"
 	sk := "USER-admin"
 
 	result, err := dynamoDB.QueryInput(context.Background(), &tableName, id, sk )
 	if err != nil {
 		t.Errorf("failed QueryInput : %s", err)
+	}
+	if len(result) == 0 {
+		t.Errorf("Not Found")
+		return
 	}
 
 	credential := []Credential{}
