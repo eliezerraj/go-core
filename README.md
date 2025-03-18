@@ -1,5 +1,7 @@
 # go-core
 
+version 1.0.38
+
 A reusable Go module with commonly used tools.
 - api
     - Make REST call
