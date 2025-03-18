@@ -3,6 +3,12 @@
 A reusable Go module with commonly used tools.
 - api
     - Make REST call
+- aws
+    - aws config
+    - s3
+    - dynamo
+    - paramter store
+    - secret manager
 - cache (redis cluster)
     - Get
     - SetCount

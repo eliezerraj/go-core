@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws"
 )
 
 var childLogger = log.With().Str("go-core.aws", "aws_config").Logger()
@@ -20,7 +19,6 @@ func (a *AwsConfig) NewAWSConfig(ctx context.Context, awsRegion string) (*aws.Co
 	if err != nil {
 		return nil, err
 	}
-	otelaws.AppendMiddlewares(&cfg.APIOptions)
 
 	return &cfg, nil
 }
