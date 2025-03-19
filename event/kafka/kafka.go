@@ -103,6 +103,7 @@ func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigura
 func (p *ProducerWorker) Producer(ctx context.Context, 
 									event_topic string, 
 									key string,
+									trace_id string,
 									payload []byte) (error){
 	childLogger.Debug().Msg("Producer")
 
@@ -117,7 +118,7 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 												Headers:  []kafka.Header{	
 																			{
 																				Key: "trace-request-id",
-																				Value: []byte(key), 
+																				Value: []byte(trace_id), 
 																			},
 																		},
 								},deliveryChan)
