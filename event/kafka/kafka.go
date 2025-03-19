@@ -39,6 +39,11 @@ type KafkaConfigurations struct {
     LagCommit       int
 }
 
+type Message struct {
+	Header_request_id 	*map[string]string
+	Payload 			string
+}
+
 var childLogger = log.With().Str("go-core", "event.kafka").Logger()
 
 func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurations) (*ProducerWorker, error) {
@@ -224,7 +229,7 @@ func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurati
 	}, nil
 }
 
-func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string ) {
+func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message ) {
 	childLogger.Debug().Msg("Consumer")
 
 	sigchan := make(chan os.Signal, 1)
@@ -262,11 +267,18 @@ func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string 
 				case *kafka.Message:
 					childLogger.Print("----------------------------------")
 					if e.Headers != nil {
-						childLogger.Printf("Headers: %v\n", e.Headers)
+						childLogger.Printf("Headers: %v\n", e.Headers)	
 					}
-					childLogger.Print("Value : " ,string(e.Value))
+					childLogger.Print("Value : ", string(e.Value))
 
-					messages <- string(e.Value)
+					headers := extractHeaders(e.Headers)
+					msg := Message{
+							Header_request_id: &headers,
+							Payload: string(e.Value),
+					}
+
+					messages <- msg
+
 					childLogger.Print("-----------------------------------")
 				case kafka.Error:
 					childLogger.Error().Err(e).Msg("kafka.Error")
@@ -278,6 +290,15 @@ func (c *ConsumerWorker) Consumer(event_topic []string,  messages chan<- string 
 			}
 		}
 	}
+}
+
+func extractHeaders(headers []kafka.Header) map[string]string {
+	childLogger.Debug().Msg("extractHeaders")
+	headerMap := make(map[string]string)
+	for _, h := range headers {
+		headerMap[string(h.Key)] = string(h.Value)
+	}
+	return headerMap
 }
 
 func (c *ConsumerWorker) Commit(){

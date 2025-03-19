@@ -35,7 +35,7 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to open database : %s", err)
 	}
 
-	key := "abc-1234"
+	key := "abc-12345"
 	event_topic := "EVENT.TEST"
 	payload := Payload{ID: 1, Name: "my teste"}
 	trace_id := "my-tracer-id"
@@ -50,7 +50,7 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to connect kafka : %s", err)
 	}
 
-	key = "abc-4567"
+	key = "abc-45678"
 	payload = Payload{ID: 2, Name: "my teste"}
 	payload_bytes, err = json.Marshal(payload)
 	if err != nil {
@@ -87,7 +87,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		t.Errorf("failed to open database : %s", err)
 	}
 
-	key := "abc-1234"
+	key := "abc-12345"
 	event_topic := "EVENT.TEST"
 	payload := Payload{ID: 1, Name: "my teste"}
 	trace_id := "my-tracer-id"
@@ -113,6 +113,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 
 	key = "abc-4567"
 	payload = Payload{ID: 2, Name: "my teste"}
+
 	payload_bytes, err = json.Marshal(payload)
 	if err != nil {
 		t.Errorf("failed to marshal payload : %s", err)
@@ -154,12 +155,14 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 	}
 
 	event_topics := []string{"EVENT.TEST"}
-	messages := make(chan string)
+	//messages := make(chan string)
+	message := make(chan Message)
 
-	go consumer_01.Consumer(event_topics, messages)
+	go consumer_01.Consumer(event_topics, message)
 
-	for msg := range messages {
-		t.Logf("=====>>>>> Received message: %v", msg)
-		//consumer_01.Commit()
+	for msg := range message {
+		t.Logf("=====>>>>> msg.Header_request_id: %v", msg.Header_request_id)	
+		t.Logf("=====>>>>> msg.Payload: %v", msg.Payload)	
 	}
+
 }
