@@ -161,7 +161,7 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 	go consumer_01.Consumer(event_topics, message)
 
 	for msg := range message {
-		t.Logf("=====>>>>> msg.Header_request_id: %v", msg.Header_request_id)	
+		t.Logf("=====>>>>> msg.Header: %v", msg.Header)	
 		t.Logf("=====>>>>> msg.Payload: %v", msg.Payload)	
 	}
 

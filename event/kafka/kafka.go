@@ -40,8 +40,8 @@ type KafkaConfigurations struct {
 }
 
 type Message struct {
-	Header_request_id 	*map[string]string
-	Payload 			string
+	Header 	*map[string]string
+	Payload string
 }
 
 var childLogger = log.With().Str("go-core", "event.kafka").Logger()
@@ -273,7 +273,7 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 
 					headers := extractHeaders(e.Headers)
 					msg := Message{
-							Header_request_id: &headers,
+							Header: &headers,
 							Payload: string(e.Value),
 					}
 
@@ -292,6 +292,7 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 	}
 }
 
+// Extract header from kafka.header
 func extractHeaders(headers []kafka.Header) map[string]string {
 	childLogger.Debug().Msg("extractHeaders")
 	headerMap := make(map[string]string)
