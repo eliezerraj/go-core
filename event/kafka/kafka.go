@@ -116,7 +116,7 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 												Value: 	payload, 
 												Headers:  []kafka.Header{	
 																			{
-																				Key: "RequesId",
+																				Key: "trace-request-id",
 																				Value: []byte(key), 
 																			},
 																		},

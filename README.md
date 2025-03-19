@@ -1,6 +1,6 @@
 # go-core
 
-version v1.0.40
+version v1.0.41
 
 A reusable Go module with commonly used tools.
 - api
