@@ -1,6 +1,8 @@
 package middleware
 
-import (	
+import (
+	"fmt"
+	"context"	
 	"net/http"
 
 	"github.com/eliezerraj/go-core/coreJson"
@@ -16,7 +18,7 @@ type ToolsMiddleware struct {
 // About middleware http header
 func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader (INICIO)  --------------")
+		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader. (INICIO)  --------------")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -29,7 +31,11 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 		w.Header().Set("referrer-policy","same-origin")
 		w.Header().Set("permission-policy","Content-Type,access-control-allow-origin, access-control-allow-headers")
 
-		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader (FIM) ----------------")
+		// set the requet-id
+		ctx := context.WithValue(r.Context(), "trace-request-id", fmt.Sprintf("%v",r.Header["X-Request-Id"]))
+		r = r.WithContext(ctx)
+	
+		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader. (FIM) ----------------")
 
 		next.ServeHTTP(w, r)
 	})
