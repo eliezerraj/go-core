@@ -36,13 +36,14 @@ func (a *ApiService) CallApi(ctx context.Context,
 							method string,
 							header_x_apigw_api_id *string,
 							header_authorization *string,
+							header_x_resquest_id *string,
 							body interface{}) (interface{}, int, error){
 
 	childLogger.Debug().Msg("CallApi")
-	childLogger.Debug().Msg("--------------------------")
-	childLogger.Debug().Interface("method:url:x_apigw_api_id : ", url + " " + method + " " + *header_x_apigw_api_id).Msg("")
+	childLogger.Debug().Msg("----------------------------------------------------")
+	childLogger.Debug().Interface("method:url:x_apigw_api_id : ", url + " " + method + " " + *header_x_apigw_api_id  + " " + *header_x_resquest_id).Msg("")
 	childLogger.Debug().Interface("body : ", body).Msg("")
-	childLogger.Debug().Msg("--------------------------")
+	childLogger.Debug().Msg("----------------------------------------------------")
 
 	transportHttp := &http.Transport{}
 	
@@ -68,6 +69,9 @@ func (a *ApiService) CallApi(ctx context.Context,
 	}
 	if (header_authorization != nil){
 		req.Header.Add("authorization", *header_authorization)
+	}
+	if (header_x_resquest_id != nil){
+		req.Header.Add("X-Request-Id", *header_x_resquest_id)
 	}
 
 	resp, err := client.Do(req.WithContext(ctx))
