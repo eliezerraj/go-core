@@ -35,7 +35,7 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to open database : %s", err)
 	}
 
-	key := "abc-12345"
+	key := "abc-123485"
 	event_topic := "EVENT.TEST"
 	payload := Payload{ID: 1, Name: "my teste"}
 	trace_id := "my-tracer-id"
@@ -45,19 +45,19 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, trace_id,payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, &trace_id, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
 
 	key = "abc-45678"
-	payload = Payload{ID: 2, Name: "my teste"}
+	payload = Payload{ID: 2, Name: "my teste no header"}
 	payload_bytes, err = json.Marshal(payload)
 	if err != nil {
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, trace_id,payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, nil, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -89,7 +89,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 
 	key := "abc-12345"
 	event_topic := "EVENT.TEST"
-	payload := Payload{ID: 1, Name: "my teste"}
+	payload := Payload{ID: 5, Name: "my teste"}
 	trace_id := "my-tracer-id"
 
 	payload_bytes, err := json.Marshal(payload)
@@ -106,20 +106,20 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		t.Errorf("failed to InitTransactions kafka : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, trace_id, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, &trace_id, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
 
 	key = "abc-4567"
-	payload = Payload{ID: 2, Name: "my teste"}
+	payload = Payload{ID: 6, Name: "my teste"}
 
 	payload_bytes, err = json.Marshal(payload)
 	if err != nil {
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, trace_id, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, &trace_id, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -161,8 +161,8 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 	go consumer_01.Consumer(event_topics, message)
 
 	for msg := range message {
-		t.Logf("=====>>>>> msg.Header: %v", msg.Header)	
-		t.Logf("=====>>>>> msg.Payload: %v", msg.Payload)	
+		t.Logf("====>>>>> msg.Header: %v", msg.Header)	
+		t.Logf("====>>>>> msg.Payload: %v", msg.Payload)
+		consumer_01.Commit()
 	}
-
 }

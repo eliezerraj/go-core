@@ -105,14 +105,26 @@ func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigura
 	}, nil
 }
 
+// Above Producer a event
 func (p *ProducerWorker) Producer(ctx context.Context, 
 									event_topic string, 
 									key string,
-									trace_id string,
+									trace_id *string,
 									payload []byte) (error){
 	childLogger.Debug().Msg("Producer")
 
 	deliveryChan := make(chan kafka.Event)
+
+	var header []kafka.Header
+	if trace_id != nil {
+		header = []kafka.Header{	
+			{
+				Key: "trace-request-id",
+				Value: []byte(*trace_id), 
+			},
+		}
+	}
+
 	err := p.producer.Produce(&kafka.Message {
 												TopicPartition: kafka.TopicPartition{	
 												Topic: &event_topic, 
@@ -120,12 +132,7 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 											},
 												Key:    []byte(key),											
 												Value: 	payload, 
-												Headers:  []kafka.Header{	
-																			{
-																				Key: "trace-request-id",
-																				Value: []byte(trace_id), 
-																			},
-																		},
+												Headers: header,
 								},deliveryChan)
 	if err != nil {
 		return err
@@ -144,16 +151,18 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 
 	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")		
 	childLogger.Debug().Msg("Delivered message to topic")
-	childLogger.Debug().Interface("topic    : ",*m.TopicPartition.Topic).Msg("")
-	childLogger.Debug().Interface("key      : ",key).Msg("")
-	childLogger.Debug().Interface("partition: ", m.TopicPartition.Partition).Msg("")
-	childLogger.Debug().Interface("offset   : ",m.TopicPartition.Offset).Msg("")
+	childLogger.Debug().Interface("topic            : ", *m.TopicPartition.Topic).Msg("")
+	childLogger.Debug().Interface("key              : ", key ).Msg("")
+	childLogger.Debug().Interface("trace-request-id : ", trace_id ).Msg("")
+	childLogger.Debug().Interface("partition        : ", m.TopicPartition.Partition).Msg("")
+	childLogger.Debug().Interface("offset           : ", m.TopicPartition.Offset).Msg("")
 	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")	
 
 	close(deliveryChan)
 	return nil
 }
 
+// Above Producer with transaction
 func (p *ProducerWorker) InitTransactions(ctx context.Context) error{
 	childLogger.Debug().Msg("InitTransactions")
 
@@ -165,6 +174,7 @@ func (p *ProducerWorker) InitTransactions(ctx context.Context) error{
 	return nil
 }
 
+// Above Producer begin transaction
 func (p *ProducerWorker) BeginTransaction() error{
 	childLogger.Debug().Msg("BeginTransaction")
 
@@ -176,6 +186,7 @@ func (p *ProducerWorker) BeginTransaction() error{
 	return nil
 }
 
+// Above Producer commit transaction
 func (p *ProducerWorker) CommitTransaction(ctx context.Context) error{
 	childLogger.Debug().Msg("CommitTransaction")
 
@@ -187,6 +198,7 @@ func (p *ProducerWorker) CommitTransaction(ctx context.Context) error{
 	return nil
 }
 
+// Above Producer abort transaction
 func (p *ProducerWorker) AbortTransaction(ctx context.Context) error{
 	childLogger.Debug().Msg("AbortTransaction")
 
