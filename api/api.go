@@ -12,6 +12,8 @@ import(
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+var childLogger = log.With().Str("component","go-core").Str("package", "api").Logger()
+
 var (
 	ErrNotFound 		= errors.New("item not found")
 	ErrUnauthorized 	= errors.New("not authorized")
@@ -19,13 +21,11 @@ var (
 	ErrHTTPForbiden		= errors.New("forbiden request")
 )
 
-var childLogger = log.With().Str("go-core", "api").Logger()
-
 type ApiService struct {
 }
 
 func NewRestApiService() *ApiService{
-	childLogger.Debug().Msg("*** NewRestApiService")
+	childLogger.Debug().Str("func","NewRestApiService").Send()
 
 	return &ApiService {
 	}
@@ -38,12 +38,11 @@ func (a *ApiService) CallApi(ctx context.Context,
 							header_authorization *string,
 							header_x_resquest_id *string,
 							body interface{}) (interface{}, int, error){
-
-	childLogger.Debug().Msg("CallApi")
-	childLogger.Debug().Msg("----------------------------------------------------")
-	childLogger.Debug().Interface("method:url:x_apigw_api_id : ", url + " " + method + " " + *header_x_apigw_api_id  + " " + *header_x_resquest_id).Msg("")
-	childLogger.Debug().Interface("body : ", body).Msg("")
-	childLogger.Debug().Msg("----------------------------------------------------")
+	childLogger.Print("...................................")
+	childLogger.Debug().Str("func","CallApi").
+						Interface("parameters", method + ":" +url + ":" + *header_x_apigw_api_id  + ":" + *header_x_resquest_id).
+						Interface("body", body).Send()
+	childLogger.Print("...................................")
 
 	transportHttp := &http.Transport{}
 	
@@ -59,7 +58,7 @@ func (a *ApiService) CallApi(ctx context.Context,
 
 	req, err := http.NewRequestWithContext(ctx, method, url, payload)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("error NewRequestWithContext")
+		childLogger.Error().Err(err).Send()
 		return nil, http.StatusBadGateway, errors.New(err.Error())
 	}
 
@@ -76,7 +75,7 @@ func (a *ApiService) CallApi(ctx context.Context,
 
 	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
-		childLogger.Error().Err(err).Msg("error client.do")
+		childLogger.Error().Err(err).Send()
 		return nil, http.StatusServiceUnavailable, errors.New(err.Error())
 	}
 
@@ -98,7 +97,7 @@ func (a *ApiService) CallApi(ctx context.Context,
 	result := body
 	err = json.NewDecoder(resp.Body).Decode(&result)
     if err != nil {
-		childLogger.Error().Err(err).Msg("error no ErrUnmarshal")
+		childLogger.Error().Err(err).Send()
 		return nil, http.StatusInternalServerError, errors.New(err.Error())
     }
 

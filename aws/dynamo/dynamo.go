@@ -11,14 +11,14 @@ import(
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 )
 
-var childLogger = log.With().Str("go-core.aws", "dynamo").Logger()
+var childLogger = log.With().Str("component","go-core").Str("package", "aws.dynamo").Logger()
 
 type DatabaseDynamo struct {
 	Client 		*dynamodb.Client
 }
 
 func (d* DatabaseDynamo) NewDatabaseDynamo(configAWS *aws.Config) (*DatabaseDynamo){
-	childLogger.Debug().Msg("NewDatabaseDynamo")
+	childLogger.Debug().Str("func","NewDatabaseDynamo").Send()
 
 	client := dynamodb.NewFromConfig(*configAWS)
 
@@ -29,7 +29,7 @@ func (d* DatabaseDynamo) NewDatabaseDynamo(configAWS *aws.Config) (*DatabaseDyna
 
 // About query item in Dynamo
 func (d* DatabaseDynamo) QueryInput(ctx context.Context, tableName *string ,id string, sk string) ([]map[string]types.AttributeValue, error){
-	childLogger.Debug().Msg("QueryInput")
+	childLogger.Debug().Str("func","QueryInput").Send()
 
 	var keyCond expression.KeyConditionBuilder
 
@@ -61,7 +61,7 @@ func (d* DatabaseDynamo) QueryInput(ctx context.Context, tableName *string ,id s
 
 // About put item in Dynamo
 func (d* DatabaseDynamo) PutItem(ctx context.Context, tableName *string, data any) (error){
-	childLogger.Debug().Msg("PutItem")
+	childLogger.Debug().Str("func","PutItem").Send()
 
 	item, err := attributevalue.MarshalMap(data)
 	if err != nil {

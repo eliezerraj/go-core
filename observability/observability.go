@@ -14,7 +14,7 @@ import(
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
-var childLogger = log.With().Str("go-core", "observability").Logger()
+var childLogger = log.With().Str("component","go-core").Str("package", "observability").Logger()
 
 type InfoTrace struct {
 	PodName				string `json:"pod_name"`
@@ -59,7 +59,7 @@ func buildResources(ctx context.Context, infoTrace *InfoTrace) (*resource.Resour
 func (t *TracerProvider) NewTracerProvider(	ctx context.Context, 
 											configOTEL *ConfigOTEL, 
 											infoTrace 	*InfoTrace) *sdktrace.TracerProvider {
-	childLogger.Debug().Msg("NewTracerProvider")
+	childLogger.Debug().Str("func","NewTracerProvider").Send()
 
 	var authOption otlptracegrpc.Option
 	authOption = otlptracegrpc.WithInsecure()

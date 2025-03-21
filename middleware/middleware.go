@@ -8,7 +8,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var childLogger = log.With().Str("go-core", "middleware").Logger()
+
+var childLogger = log.With().Str("component","go-core").Str("package", "middleware").Logger()
+
 var core_json coreJson.CoreJson
 
 type ToolsMiddleware struct {
@@ -17,7 +19,7 @@ type ToolsMiddleware struct {
 // About middleware http header
 func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader. (INICIO)  --------------")
+		childLogger.Debug().Msg("................ MiddleWareHandlerHeader. (INICIO) ..........")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -40,7 +42,7 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 		ctx := context.WithValue(r.Context(), "trace-request-id", header_req_str)
 		r = r.WithContext(ctx)
 
-		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader. (FIM) ----------------")
+		childLogger.Debug().Msg("........... MiddleWareHandlerHeader. (FIM) ..........")
 
 		next.ServeHTTP(w, r)
 	})
@@ -51,12 +53,12 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 // About middleware http error header
 func (t *ToolsMiddleware) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		childLogger.Debug().Msg("------- MiddleWareErrorHandler (INICIO - ERROR)  --------------")
+		childLogger.Debug().Msg("................ MiddleWareErrorHandler (INICIO - RESPONSE/ERROR)  ...............")
 		if err := h(w, r); err != nil {
 			if e, ok := err.(*coreJson.APIError); ok{
 				core_json.WriteJSON(w, e.StatusCode, e)
 			}
 		}
-		childLogger.Debug().Msg("------- MiddleWareErrorHandler (FIM - ERROR)  --------------")
+		childLogger.Debug().Msg(".......... MiddleWareErrorHandler (FIM - RESPONSE/ERROR)  ...............")
 	 }
 }

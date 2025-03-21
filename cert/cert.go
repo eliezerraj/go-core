@@ -9,15 +9,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var childLogger = log.With().Str("go-core", "cert").Logger()
+var childLogger = log.With().Str("component","go-core").Str("package", "cert.cert").Logger()
 
 type CertCore struct {
 }
 
 // About convert a key pem string in rsa key
 func (c *CertCore) ParsePemToRSAPriv(private_key *string) (*rsa.PrivateKey, error){
-	childLogger.Debug().Msg("ParsePemToRSAPriv")
-	childLogger.Debug().Interface("private_key :",private_key).Msg("")
+	childLogger.Debug().Str("func","ParsePemToRSAPriv").Interface("private_key :",private_key).Send()
 
 	block, _ := pem.Decode([]byte(*private_key))
 	if block == nil || block.Type != "PRIVATE KEY" {
@@ -26,7 +25,7 @@ func (c *CertCore) ParsePemToRSAPriv(private_key *string) (*rsa.PrivateKey, erro
 
 	privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("erro ParsePKCS8PrivateKey")
+		childLogger.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -42,13 +41,13 @@ func (c *CertCore) ParsePemToRSAPub(public_key *string) (*rsa.PublicKey, error){
 
 	block, _ := pem.Decode([]byte(*public_key))
 	if block == nil || block.Type != "PUBLIC KEY" {
-		childLogger.Error().Err(errors.New("erro PUBLIC KEY Decode")).Msg("erro PUBLIC KEY Decode")
+		childLogger.Error().Err(errors.New("erro PUBLIC KEY Decode")).Send()
 		return nil, errors.New("erro PUBLIC KEY Decode")
 	}
 
 	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("erro ParsePKCS8PrivateKey")
+		childLogger.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -64,12 +63,13 @@ func (c *CertCore) ParsePemToCertx509(certX509pem *string) (*x509.Certificate, e
 
 	block, _ := pem.Decode([]byte(*certX509pem))
 	if block == nil || block.Type != "CERTIFICATE" {
+		childLogger.Error().Err(errors.New("erro CERT X509 Decode")).Send()
 		return nil, errors.New("erro CERT X509 Decode")
 	}
 
 	certX509, err := x509.ParseCertificate(block.Bytes)
     if err != nil {
-		childLogger.Error().Msg("Erro ParseCertificate !!!")
+		childLogger.Error().Err(err).Send()
         return nil, err
     }
 

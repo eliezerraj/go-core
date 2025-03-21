@@ -5,7 +5,11 @@ import (
 	"errors"
 	"net/http"
 	"encoding/json"
+
+	"github.com/rs/zerolog/log"
 )
+
+var childLogger = log.With().Str("component","go-core").Str("package", "coreJson").Logger()
 
 type JSONResponse struct {
 	Message string      `json:"message"`
@@ -16,6 +20,8 @@ type CoreJson struct{
 }
 
 func (c *CoreJson) ReadJSON(r *http.Request, w http.ResponseWriter, data interface{}) error {
+	childLogger.Debug().Str("func","ReadJSON").Send()
+
 	maxBytes := 1024 * 1024 // 1 Mb
 
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -35,6 +41,8 @@ func (c *CoreJson) ReadJSON(r *http.Request, w http.ResponseWriter, data interfa
 }
 
 func (c *CoreJson) WriteJSON(w http.ResponseWriter, code int, data interface{}) error {
+	childLogger.Debug().Str("func","WriteJSON").Send()
+	
 	data_json, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -60,6 +68,8 @@ func (e *APIError) Error() string {
 }
 
 func (e *APIError) NewAPIError(err error, status ...int) APIError {
+	childLogger.Debug().Str("func","NewAPIError").Send()
+
 	statusCode := http.StatusBadRequest
 	
 	if len(status) > 0 {

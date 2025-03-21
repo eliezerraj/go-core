@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-var childLogger = log.With().Str("go-core.aws", "bucket_s3").Logger()
+var childLogger = log.With().Str("component","go-core").Str("package", "aws.bucket_s3").Logger()
 
 type AwsBucketS3 struct {
 	Client *s3.Client
@@ -17,7 +17,7 @@ type AwsBucketS3 struct {
 
 // About create a new client
 func (b *AwsBucketS3) NewAwsS3Bucket(configAWS *aws.Config) *AwsBucketS3 {
-	childLogger.Debug().Msg("NewAwsS3Bucket")
+	childLogger.Debug().Str("func","NewAwsS3Bucket").Send()
 
 	client := s3.NewFromConfig(*configAWS)
 	
@@ -31,7 +31,7 @@ func (b *AwsBucketS3) GetObject(ctx context.Context,
 								bucketNameKey 	string,
 								filePath 		string,
 								fileKey 		string) (*string, error) {
-	childLogger.Debug().Msg("GetObject")
+	childLogger.Debug().Str("func","GetObject").Send()
 
 	getObjectInput := &s3.GetObjectInput{
 						Bucket: aws.String(bucketNameKey+filePath),

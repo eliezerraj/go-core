@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var childLogger = log.With().Str("go-core", "database.pg").Logger()
+var childLogger = log.With().Str("component","go-core").Str("package", "database.pg").Logger()
 
 type DatabaseConfig struct {
     Host 				string `json:"host"`
@@ -35,6 +35,8 @@ type DatabasePGServer struct {
 }
 
 func Config(database_url string) (*pgxpool.Config) {
+	childLogger.Debug().Str("func","Config").Send()
+
 	const defaultMaxConns = int32(10)
 	const defaultMinConns = int32(2)
 	const defaultMaxConnLifetime = time.Hour
@@ -44,7 +46,7 @@ func Config(database_url string) (*pgxpool.Config) {
    
 	dbConfig, err := pgxpool.ParseConfig(database_url)
 	if err!=nil {
-		childLogger.Error().Err(err).Msg("Failed to create a config")
+		childLogger.Error().Err(err).Send()
 	}
    
 	dbConfig.MaxConns = defaultMaxConns
@@ -72,7 +74,7 @@ func Config(database_url string) (*pgxpool.Config) {
 }
 
 func (d DatabasePGServer) NewDatabasePGServer(ctx context.Context, databaseConfig DatabaseConfig) (DatabasePGServer, error) {
-	childLogger.Debug().Msg("NewDatabasePGServer")
+	childLogger.Debug().Str("func","NewDatabasePGServer").Send()
 	
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", 
 							databaseConfig.User, 
@@ -97,7 +99,7 @@ func (d DatabasePGServer) NewDatabasePGServer(ctx context.Context, databaseConfi
 }
 
 func (d DatabasePGServer) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
-	childLogger.Debug().Msg("Acquire")
+	childLogger.Debug().Str("func","NewDatabasePGServer").Send()
 	
 	connection, err := d.connPool.Acquire(ctx)
 	if err != nil {
@@ -109,22 +111,25 @@ func (d DatabasePGServer) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 }
 
 func (d DatabasePGServer) Release(connection *pgxpool.Conn) {
-	childLogger.Debug().Msg("Release")
+	childLogger.Debug().Str("func","Release").Send()
+
 	defer connection.Release()
 }
 
 func (d DatabasePGServer) GetConnection() (*pgxpool.Pool) {
-	childLogger.Debug().Msg("GetConnection")
+	childLogger.Debug().Str("func","GetConnection").Send()
+
 	return d.connPool
 }
 
 func (d DatabasePGServer) CloseConnection() {
-	childLogger.Debug().Msg("CloseConnection")
+	childLogger.Debug().Str("func","CloseConnection").Send()
+
 	defer d.connPool.Close()
 }
 
 func (d DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, error) {
-	childLogger.Debug().Msg("StartTx")
+	childLogger.Debug().Str("func","StartTx").Send()
 
 	conn, err := d.Acquire(ctx)
 	if err != nil {
@@ -134,14 +139,14 @@ func (d DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, e
 	
 	tx, err := conn.Begin(ctx)
     if err != nil {
-        return nil, nil ,errors.New(err.Error())
+        return nil, nil, errors.New(err.Error())
     }
 
 	return tx, conn, nil
 }
 
 func (d DatabasePGServer) ReleaseTx(connection *pgxpool.Conn) {
-	childLogger.Debug().Msg("ReleaseTx")
+	childLogger.Debug().Str("func","ReleaseTx").Send()
 
 	defer connection.Release()
 }

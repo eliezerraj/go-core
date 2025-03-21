@@ -12,6 +12,8 @@ import(
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+var childLogger = log.With().Str("component","go-core").Str("package", "event.kafka").Logger()
+
 type ProducerWorker struct{
 	kafkaConfigurations *KafkaConfigurations
 	producer        	*kafka.Producer
@@ -44,10 +46,8 @@ type Message struct {
 	Payload string
 }
 
-var childLogger = log.With().Str("go-core", "event.kafka").Logger()
-
 func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurations) (*ProducerWorker, error) {
-	childLogger.Debug().Msg("NewProducerWorker")
+	childLogger.Debug().Str("func","NewProducerWorker").Send()
 
 	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
 	
@@ -66,7 +66,7 @@ func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurati
 
 	producer, err := kafka.NewProducer(config)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to create producer:")
+		childLogger.Error().Err(err).Send()
 		return nil, err
 	}
 	
@@ -76,7 +76,7 @@ func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurati
 }
 
 func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations) (*ProducerWorker, error) {
-	childLogger.Debug().Msg("NewProducerWorkerTX")
+	childLogger.Debug().Str("func","NewProducerWorkerTX").Send()
 
 	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
 	
@@ -96,7 +96,7 @@ func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigura
 
 	producer, err := kafka.NewProducer(config)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to create producerTX:")
+		childLogger.Error().Err(err).Send()
 		return nil, err
 	}
 	
@@ -111,7 +111,8 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 									key string,
 									trace_id *string,
 									payload []byte) (error){
-	childLogger.Debug().Msg("Producer")
+
+	childLogger.Debug().Str("func","Producer").Send()
 
 	deliveryChan := make(chan kafka.Event)
 
@@ -165,11 +166,11 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 
 // Above Producer with transaction
 func (p *ProducerWorker) InitTransactions(ctx context.Context) error{
-	childLogger.Debug().Msg("InitTransactions")
+	childLogger.Debug().Str("func","InitTransactions").Send()
 
 	err := p.producer.InitTransactions(ctx);
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to InitTransactions")
+		childLogger.Error().Err(err).Send()
 		return err
 	}
 	return nil
@@ -177,11 +178,11 @@ func (p *ProducerWorker) InitTransactions(ctx context.Context) error{
 
 // Above Producer begin transaction
 func (p *ProducerWorker) BeginTransaction() error{
-	childLogger.Debug().Msg("BeginTransaction")
+	childLogger.Debug().Str("func","BeginTransaction").Send()
 
 	err := p.producer.BeginTransaction();
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to BeginTransaction")
+		childLogger.Error().Err(err).Send()
 		return err
 	}
 	return nil
@@ -189,11 +190,11 @@ func (p *ProducerWorker) BeginTransaction() error{
 
 // Above Producer commit transaction
 func (p *ProducerWorker) CommitTransaction(ctx context.Context) error{
-	childLogger.Debug().Msg("CommitTransaction")
+	childLogger.Debug().Str("func","CommitTransaction").Send()
 
 	err := p.producer.CommitTransaction(ctx);
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to CommitTransaction")
+		childLogger.Error().Err(err).Send()
 		return err
 	}
 	return nil
@@ -201,18 +202,18 @@ func (p *ProducerWorker) CommitTransaction(ctx context.Context) error{
 
 // Above Producer abort transaction
 func (p *ProducerWorker) AbortTransaction(ctx context.Context) error{
-	childLogger.Debug().Msg("AbortTransaction")
+	childLogger.Debug().Str("func","AbortTransaction").Send()
 
 	err := p.producer.AbortTransaction(ctx);
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to AbortTransaction")
+		childLogger.Error().Err(err).Send()
 		return err
 	}
 	return nil
 }
 
 func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurations) (*ConsumerWorker, error) {
-	childLogger.Debug().Msg("NewConsumerWorker")
+	childLogger.Debug().Str("func","NewConsumerWorker").Send()
 
 	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
 	
@@ -233,7 +234,7 @@ func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurati
 
 	consumer, err := kafka.NewConsumer(config)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to create consumer")
+		childLogger.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -243,7 +244,7 @@ func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurati
 }
 
 func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message ) {
-	childLogger.Debug().Msg("Consumer")
+	childLogger.Debug().Str("func","Consumer").Send()
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -256,7 +257,7 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 
 	err := c.consumer.SubscribeTopics(event_topic, nil)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("Failed to subscriber topic")
+		childLogger.Error().Err(err).Send()
 	}
 
 	run := true
@@ -278,7 +279,8 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 				case kafka.PartitionEOF:
 					childLogger.Error().Interface("kafka.PartitionEOF: ",e).Msg("")
 				case *kafka.Message:
-					childLogger.Print("----------------------------------")
+					childLogger.Print("...................................")
+
 					if e.Headers != nil {
 						childLogger.Printf("Headers: %v\n", e.Headers)	
 					}
@@ -289,10 +291,9 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 							Header: &headers,
 							Payload: string(e.Value),
 					}
-
 					messages <- msg
 
-					childLogger.Print("-----------------------------------")
+					childLogger.Print("...................................")
 				case kafka.Error:
 					childLogger.Error().Err(e).Msg("kafka.Error")
 					if e.Code() == kafka.ErrAllBrokersDown {
@@ -307,6 +308,8 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 
 // Extract header from kafka.header
 func extractHeaders(headers []kafka.Header) map[string]string {
+	childLogger.Debug().Str("func","extractHeaders").Send()
+
 	childLogger.Debug().Msg("extractHeaders")
 	headerMap := make(map[string]string)
 	for _, h := range headers {
@@ -316,7 +319,7 @@ func extractHeaders(headers []kafka.Header) map[string]string {
 }
 
 func (c *ConsumerWorker) Commit(){
-	childLogger.Debug().Msg("Commit")
+	childLogger.Debug().Str("func","Commit").Send()
 	
 	c.consumer.Commit()
 }

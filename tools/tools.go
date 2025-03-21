@@ -16,12 +16,13 @@ func (t *ToolsCore) Test() string{
 }
 
 func (t *ToolsCore) ConvertToDate(date_str string) (*time.Time, error){
-	
+	childLogger.Debug().Str("func","ConvertToDate").Send()
+
 	layout := "2006-01-02"
 
 	date, err := time.Parse(layout, date_str)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("error parsing date")
+		childLogger.Info().Err(err).Send()
 		return nil, err
 	}
 
