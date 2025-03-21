@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"context"	
 	"net/http"
 
@@ -32,10 +31,14 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 		w.Header().Set("permission-policy","Content-Type,access-control-allow-origin, access-control-allow-headers")
 
 		// set the resquet-id
+		var header_req_str string
 		if len(r.Header.Values("X-Request-Id")) > 0 {
-			ctx := context.WithValue(r.Context(), "trace-request-id", fmt.Sprintf("%v",r.Header["X-Request-Id"][0]))
-			r = r.WithContext(ctx)
+			header_req_str = r.Header["X-Request-Id"][0]
+		} else {
+			header_req_str = ""
 		}
+		ctx := context.WithValue(r.Context(), "trace-request-id", header_req_str)
+		r = r.WithContext(ctx)
 
 		childLogger.Debug().Msg("-------------- MiddleWareHandlerHeader. (FIM) ----------------")
 

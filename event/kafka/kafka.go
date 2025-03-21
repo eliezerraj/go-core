@@ -116,6 +116,7 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 	deliveryChan := make(chan kafka.Event)
 
 	var header []kafka.Header
+
 	if trace_id != nil {
 		header = []kafka.Header{	
 			{
