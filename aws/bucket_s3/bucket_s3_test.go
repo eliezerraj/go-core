@@ -24,10 +24,26 @@ func TestCore_BucketS3(t *testing.T){
 	fileKey := "server-private.key"
 
 	obj, err := workerBucketS3.GetObject(context.Background(), 
-										bucketNameKey,filePath,fileKey )
+										bucketNameKey,
+										filePath,
+										fileKey )
 	if err != nil {
 		t.Errorf("failed GetObject : %s", err)
 	}
 
 	t.Logf("=====>>>>> obj: %v", obj)
+
+	bucketNameKey = "eliezerraj-908671954593-mtls-truststore"
+	filePath = "/"
+	fileKey = "text.txt"
+	file := []byte("my test")
+
+	err = workerBucketS3.PutObject(context.Background(), 
+										bucketNameKey,
+										filePath,
+										fileKey,
+										file )
+	if err != nil {
+		t.Errorf("failed PutObject : %s", err)
+	}
 }
