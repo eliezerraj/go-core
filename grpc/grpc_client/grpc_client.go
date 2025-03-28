@@ -2,11 +2,16 @@ package gprc_client
 
 import (
 	"time"
+	"context"
 	"github.com/rs/zerolog/log"
 
 	"github.com/golang/protobuf/jsonpb"	
 	pb "github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
+	
+	"google.golang.org/grpc"	
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 var childLogger = log.With().Str("component","go-grpc").Str("package", "grpc.gprc_client").Logger()
@@ -54,6 +59,23 @@ func (s *GrpcClient) StartGrpcClient(host string) (*GrpcClient, error){
 	return &GrpcClient{
 		GrcpClient : conn,
 	}, nil
+}
+
+// About get connection
+func (s *GrpcClient) TestConnection(ctx context.Context) (error) {
+	childLogger.Debug().Str("func","TestConnection").Send()
+	
+	if (s.GrcpClient == nil){
+		return status.Errorf(codes.Internal, "client grpc is nul")
+	}
+
+	client := grpc_health_v1.NewHealthClient(s.GrcpClient)
+	_, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: ""})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // About close connection
