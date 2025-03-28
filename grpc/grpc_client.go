@@ -1,4 +1,4 @@
-package gprc_client
+package gprc
 
 import (
 	"time"
@@ -14,14 +14,14 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-var childLogger = log.With().Str("component","go-grpc").Str("package", "grpc.gprc_client").Logger()
+var childLogger = log.With().Str("component","go-core-grpc").Str("package", "grp").Logger()
 
-type GrpcClient struct {
+type GrpcClientWorker struct {
 	GrcpClient		*grpc.ClientConn
 }
 
 // About convert proto to json
-func ProtoToJSON(msg pb.Message) (string, error) {
+func (s *GrpcClientWorker) ProtoToJSON(msg pb.Message) (string, error) {
 	marshaler := jsonpb.Marshaler{
 		EnumsAsInts:  false,
 		EmitDefaults: true,
@@ -33,12 +33,12 @@ func ProtoToJSON(msg pb.Message) (string, error) {
 }
 
 // About convert json to proto
-func JSONToProto(data string, msg pb.Message) error {
+func (s *GrpcClientWorker) JSONToProto(data string, msg pb.Message) error {
 	return jsonpb.UnmarshalString(data, msg)
 }
 
 // About start a grpc client
-func (s *GrpcClient) StartGrpcClient(host string) (*GrpcClient, error){
+func (s *GrpcClientWorker) StartGrpcClient(host string) (*GrpcClientWorker, error){
 	childLogger.Debug().Str("func","StartGrpcClient").Send()
 
 	// Prepare options
@@ -56,13 +56,13 @@ func (s *GrpcClient) StartGrpcClient(host string) (*GrpcClient, error){
 	  return nil, err
 	}
 
-	return &GrpcClient{
+	return &GrpcClientWorker{
 		GrcpClient : conn,
 	}, nil
 }
 
 // About get connection
-func (s *GrpcClient) TestConnection(ctx context.Context) (error) {
+func (s *GrpcClientWorker) TestConnection(ctx context.Context) (error) {
 	childLogger.Debug().Str("func","TestConnection").Send()
 	
 	if (s.GrcpClient == nil){
@@ -79,7 +79,7 @@ func (s *GrpcClient) TestConnection(ctx context.Context) (error) {
 }
 
 // About close connection
-func (s *GrpcClient) CloseConnection() () {
+func (s *GrpcClientWorker) CloseConnection() () {
 	childLogger.Debug().Str("func","CloseConnection").Send()
 
 	if err := s.GrcpClient.Close(); err != nil {
