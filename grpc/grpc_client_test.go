@@ -1,4 +1,4 @@
-package gprc_client
+package gprc
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestMyServiceClient_GetData(t *testing.T) {
-	var testGrpcClient GrpcClient
+	var testGrpcClient GrpcClientWorker
 
 	hostGrpc := "localhost:50053"
 
