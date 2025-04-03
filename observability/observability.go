@@ -1,6 +1,7 @@
 package observability
 
 import(
+	"fmt"
 	"context"
 	"time"
 	"github.com/rs/zerolog/log"
@@ -25,13 +26,16 @@ type InfoTrace struct {
 }
 
 type ConfigOTEL struct {
-	OtelExportEndpoint		string
-	TimeInterval            int64    `mapstructure:"TimeInterval"`
-	TimeAliveIncrementer    int64    `mapstructure:"RandomTimeAliveIncrementer"`
-	TotalHeapSizeUpperBound int64    `mapstructure:"RandomTotalHeapSizeUpperBound"`
-	ThreadsActiveUpperBound int64    `mapstructure:"RandomThreadsActiveUpperBound"`
-	CpuUsageUpperBound      int64    `mapstructure:"RandomCpuUsageUpperBound"`
-	SampleAppPorts          []string `mapstructure:"SampleAppPorts"`
+	OtelExportEndpoint			string
+	TimeInterval            	int64    `mapstructure:"TimeInterval"`
+	TimeAliveIncrementer    	int64    `mapstructure:"RandomTimeAliveIncrementer"`
+	TotalHeapSizeUpperBound 	int64    `mapstructure:"RandomTotalHeapSizeUpperBound"`
+	ThreadsActiveUpperBound 	int64    `mapstructure:"RandomThreadsActiveUpperBound"`
+	CpuUsageUpperBound      	int64    `mapstructure:"RandomCpuUsageUpperBound"`
+	SampleAppPorts          	[]string `mapstructure:"SampleAppPorts"`
+	AWSCloudWatchLogGroup		string	 `mapstructure:"AWSCloudWatchLogGroup"`
+	UseStdoutTracerExporter		bool	 `mapstructure:"UseStdoutTracerExporter"`
+	UseOtlpCollector			bool	 `mapstructure:"UseOtlpCollector"`   
 }
 
 type TracerProvider struct {
@@ -102,13 +106,10 @@ func (t *TracerProvider) Event(span trace.Span, attributeSpan string) {
 
 // About create a span
 func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
-	cID, rID := "unknown", "unknown"
-	/*if id, ok := logger.ClientUUID(ctx); ok {
-		cID = id
-	}
-	if id, ok := logger.RequestUUID(ctx); ok {
-		rID = id
-	}*/
+	
+	// get tracer id
+	trace_id := "not-informed"
+	trace_id = fmt.Sprintf("%v",ctx.Value("trace-request-id"))
 
 	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
 	
@@ -117,8 +118,7 @@ func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
 							spanName,
 							trace.WithSpanKind(trace.SpanKindConsumer),
 							trace.WithAttributes(
-								attribute.String("id", cID),
-								attribute.String("request_id", rID)),
+								attribute.String("trace-request-id", trace_id)),
 	)
 
 	return span
@@ -126,7 +126,10 @@ func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
 
 // About create a span and return the context
 func (t *TracerProvider) SpanCtx(ctx context.Context, spanName string) (context.Context, trace.Span) {
-	cID, rID := "unknown", "unknown"
+	
+	// get tracer id
+	trace_id := "not-informed"
+	trace_id = fmt.Sprintf("%v",ctx.Value("trace-request-id"))
 
 	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
 	
@@ -135,8 +138,7 @@ func (t *TracerProvider) SpanCtx(ctx context.Context, spanName string) (context.
 							spanName,
 							trace.WithSpanKind(trace.SpanKindConsumer),
 							trace.WithAttributes(
-								attribute.String("id", cID),
-								attribute.String("request_id", rID)),
+								attribute.String("trace-request-id", trace_id)),
 	)
 
 	return ctx, span
