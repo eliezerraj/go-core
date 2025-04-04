@@ -33,7 +33,7 @@ type ConfigOTEL struct {
 	ThreadsActiveUpperBound 	int64    `mapstructure:"RandomThreadsActiveUpperBound"`
 	CpuUsageUpperBound      	int64    `mapstructure:"RandomCpuUsageUpperBound"`
 	SampleAppPorts          	[]string `mapstructure:"SampleAppPorts"`
-	AWSCloudWatchLogGroup		string	 `mapstructure:"AWSCloudWatchLogGroup"`
+	AWSCloudWatchLogGroup		[]string `mapstructure:"AWSCloudWatchLogGroup"`
 	UseStdoutTracerExporter		bool	 `mapstructure:"UseStdoutTracerExporter"`
 	UseOtlpCollector			bool	 `mapstructure:"UseOtlpCollector"`   
 }
@@ -41,21 +41,22 @@ type ConfigOTEL struct {
 type TracerProvider struct {
 }
 
-func attributes(ctx context.Context, infoTrace *InfoTrace) []attribute.KeyValue {
+func attributes(ctx context.Context, infoTrace *InfoTrace, configOTEL *ConfigOTEL) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String("service.name", infoTrace.PodName),
 		attribute.String("service.version", infoTrace.PodVersion),
 		attribute.String("account", infoTrace.AccountID),
 		attribute.String("service.type", infoTrace.ServiceType),
 		attribute.String("env", infoTrace.Env),
+		semconv.AWSLogGroupNamesKey.StringSlice(configOTEL.AWSCloudWatchLogGroup),
 		semconv.TelemetrySDKLanguageGo,
 	}
 }
 
-func buildResources(ctx context.Context, infoTrace *InfoTrace) (*resource.Resource, error) {
+func buildResources(ctx context.Context, infoTrace *InfoTrace, configOTEL *ConfigOTEL) (*resource.Resource, error) {
 	return resource.New(
 		ctx,
-		resource.WithAttributes(attributes(ctx, infoTrace)...),
+		resource.WithAttributes(attributes(ctx, infoTrace, configOTEL)...),
 	)
 }
 
@@ -68,26 +69,24 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 	var authOption otlptracegrpc.Option
 	authOption = otlptracegrpc.WithInsecure()
 
-	exporter, err := otlptrace.New(
-		ctx,
-		otlptracegrpc.NewClient(
-			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{
-				Enabled:         true,
-				InitialInterval: time.Millisecond * 100,
-				MaxInterval:     time.Millisecond * 500,
-				MaxElapsedTime:  time.Second,
-			}),
-			authOption,
-			otlptracegrpc.WithEndpoint(configOTEL.OtelExportEndpoint),
-		),
-	)
+	exporter, err := otlptrace.New(	ctx,
+									otlptracegrpc.NewClient(
+										otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{
+											Enabled:         true,
+											InitialInterval: time.Millisecond * 100,
+											MaxInterval:     time.Millisecond * 500,
+											MaxElapsedTime:  time.Second,
+										}),
+										authOption,
+										otlptracegrpc.WithEndpoint(configOTEL.OtelExportEndpoint),
+									),)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("failed to create OTEL trace exporter")
 	}
 
-	resources, err := buildResources(ctx, infoTrace)
+	resources, err := buildResources(ctx, infoTrace, configOTEL)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("failed to load OTEL resource")
+		childLogger.Error().Err(err).Msg("failed to build OTEL resource")
 	}
 
 	tp := sdktrace.NewTracerProvider(
