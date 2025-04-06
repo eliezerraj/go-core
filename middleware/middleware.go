@@ -33,11 +33,9 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 		w.Header().Set("permission-policy","Content-Type,access-control-allow-origin, access-control-allow-headers")
 
 		// set the resquet-id
-		var header_req_str string
+		var header_req_str = ""
 		if len(r.Header.Values("X-Request-Id")) > 0 {
 			header_req_str = r.Header["X-Request-Id"][0]
-		} else {
-			header_req_str = ""
 		}
 		ctx := context.WithValue(r.Context(), "trace-request-id", header_req_str)
 		r = r.WithContext(ctx)

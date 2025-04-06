@@ -7,6 +7,7 @@ import(
 	"github.com/rs/zerolog/log"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel"
@@ -65,9 +66,23 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 											configOTEL *ConfigOTEL, 
 											infoTrace 	*InfoTrace) *sdktrace.TracerProvider {
 	childLogger.Debug().Str("func","NewTracerProvider").Send()
+	
+	// turn on/off the tracer
+	if !configOTEL.UseStdoutTracerExporter && !configOTEL.UseOtlpCollector {
+		return nil
+	}
 
-	var authOption otlptracegrpc.Option
-	authOption = otlptracegrpc.WithInsecure()
+	var stdout_export sdktrace.SpanExporter
+	var err error
+	if configOTEL.UseStdoutTracerExporter {
+		stdout_export, err = stdouttrace.New()
+		if err != nil {
+			childLogger.Error().Err(err).Msg("error creating stdout logging exporter")
+		}
+	}
+	
+	var auth_option otlptracegrpc.Option
+	auth_option = otlptracegrpc.WithInsecure()
 
 	exporter, err := otlptrace.New(	ctx,
 									otlptracegrpc.NewClient(
@@ -77,7 +92,7 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 											MaxInterval:     time.Millisecond * 500,
 											MaxElapsedTime:  time.Second,
 										}),
-										authOption,
+										auth_option,
 										otlptracegrpc.WithEndpoint(configOTEL.OtelExportEndpoint),
 									),)
 	if err != nil {
@@ -94,6 +109,7 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
 		sdktrace.WithSyncer(exporter),
 		sdktrace.WithResource(resources),
+		sdktrace.WithBatcher(stdout_export),
 	)
 	return tp
 }
