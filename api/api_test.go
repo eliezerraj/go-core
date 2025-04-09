@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestGoCore_CallRestApi(t *testing.T){
+/*func TestGoCore_CallRestApi(t *testing.T){
 
 	headers := map[string]string{
 		"Content-Type":  "application/json;charset=UTF-8",
@@ -72,4 +72,42 @@ func TestGoCore_CallRestApi(t *testing.T){
 	}
 	t.Logf("statusCode: %v", statusCode)
 	t.Logf("res: %v", res)
+
+	
+	//--------------------------------
+}*/
+
+func TestGoCore_CallRestApi2(t *testing.T){
+
+	headers := map[string]string{
+		"Content-Type":  "application/json;charset=UTF-8",
+		"Host": "go-limit.XXXXX.XXXXXX.io",
+	}
+
+	httpClient := HttpClient {
+		Url: 	"https://nlb-eks-arch-02.XXXXXX.XXXXXX.io/info",
+		Method: "GET",
+		Timeout: 15,
+		Headers: &headers,
+	}
+
+	ctx, cancel := context.WithTimeout(	context.Background(), 
+										time.Duration( 30 ) * time.Second)
+	defer cancel()
+
+	apiService := NewRestApiService()
+
+	//-----------------------------------------------------
+	res, statusCode, err := apiService.CallRestApi(ctx, httpClient, nil)
+	if err != nil {
+		t.Errorf("err : %s", err)
+	}
+	if statusCode == 200 {
+		t.Logf("OK the data existes: %s", err)
+		return
+	} else {
+		t.Errorf("ops...the data supose exists err : %s", err)
+	}
+	t.Logf("statusCode: %v", statusCode)
+	t.Logf("res: %v", res)	
 }
