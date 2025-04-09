@@ -67,7 +67,11 @@ func (a *ApiService) CallRestApi(ctx context.Context,
 	}
 
 	for key, value := range *httpClient.Headers {
-		req.Header.Set(key, value)
+		if key == "Host" || key == "host" {
+			req.Host = value
+		} else {
+			req.Header.Set(key, value)
+		}
 	}
 
 	resp, err := client.Do(req.WithContext(ctx))
