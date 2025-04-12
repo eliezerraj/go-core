@@ -107,7 +107,7 @@ func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigura
 func (p *ProducerWorker) Producer(ctx context.Context, 
 									event_topic string, 
 									key string,
-									trace_id *string,
+									producer_headers *map[string]string,
 									payload []byte) (error){
 
 	childLogger.Debug().Str("func","Producer").Send()
@@ -116,12 +116,13 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 
 	var header []kafka.Header
 
-	if trace_id != nil {
-		header = []kafka.Header{	
-			{
-				Key: "trace-request-id",
-				Value: []byte(*trace_id), 
-			},
+	if producer_headers != nil {
+		for key, value := range *producer_headers {
+			h := kafka.Header{
+				Key: key,
+				Value: []byte(value), 
+			}
+			header = append(header, h)
 		}
 	}
 
@@ -153,7 +154,7 @@ func (p *ProducerWorker) Producer(ctx context.Context,
 	childLogger.Debug().Msg("Delivered message to topic")
 	childLogger.Debug().Interface("topic            : ", *m.TopicPartition.Topic).Msg("")
 	childLogger.Debug().Interface("key              : ", key ).Msg("")
-	childLogger.Debug().Interface("trace-request-id : ", trace_id ).Msg("")
+	childLogger.Debug().Interface("header           : ", header ).Msg("")
 	childLogger.Debug().Interface("partition        : ", m.TopicPartition.Partition).Msg("")
 	childLogger.Debug().Interface("offset           : ", m.TopicPartition.Offset).Msg("")
 	childLogger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")	

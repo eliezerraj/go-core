@@ -38,14 +38,17 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 	key := "abc-123485"
 	event_topic := "EVENT.TEST"
 	payload := Payload{ID: 1, Name: "my teste"}
-	trace_id := "my-tracer-id"
+
+	headers := make(map[string]string)
+	headers["my-custom-header-id"] = "MY-CUSTOM-HEADER-001"
+	headers["my-tracer-id"] = "MY-TRACER-TEST-002"
 
 	payload_bytes, err := json.Marshal(payload)
 	if err != nil {
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, &trace_id, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, &headers, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -90,7 +93,10 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 	key := "abc-12345"
 	event_topic := "EVENT.TEST"
 	payload := Payload{ID: 5, Name: "my teste"}
-	trace_id := "my-tracer-id"
+
+	headers := make(map[string]string)
+	headers["my-custom-header-id"] = "MY-CUSTOM-HEADER-001"
+	headers["my-tracer-id"] = "MY-TRACER-TEST-002"
 
 	payload_bytes, err := json.Marshal(payload)
 	if err != nil {
@@ -106,7 +112,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		t.Errorf("failed to InitTransactions kafka : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, &trace_id, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, &headers, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
@@ -119,7 +125,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		t.Errorf("failed to marshal payload : %s", err)
 	}
 
-	err = producer_01.Producer(context.Background(), event_topic, key, &trace_id, payload_bytes)
+	err = producer_01.Producer(context.Background(), event_topic, key, &headers, payload_bytes)
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
