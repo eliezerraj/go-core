@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-var childLogger = log.With().Str("component","go-core-grpc").Str("package", "grp").Logger()
+var childLogger = log.With().Str("component","go-core").Str("package", "grpc").Logger()
 
 type GrpcClientWorker struct {
 	GrcpClient		*grpc.ClientConn
@@ -39,7 +39,7 @@ func (s *GrpcClientWorker) JSONToProto(data string, msg pb.Message) error {
 
 // About start a grpc client
 func (s *GrpcClientWorker) StartGrpcClient(host string) (*GrpcClientWorker, error){
-	childLogger.Debug().Str("func","StartGrpcClient").Send()
+	childLogger.Debug().Str("func","StartGrpcClient").Interface("host",host).Send()
 
 	// Prepare options
 	var opts []grpc.DialOption
@@ -72,6 +72,7 @@ func (s *GrpcClientWorker) TestConnection(ctx context.Context) (error) {
 	client := grpc_health_v1.NewHealthClient(s.GrcpClient)
 	_, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: ""})
 	if err != nil {
+		childLogger.Error().Err(err).Msg("failed to gPRC test connection")
 		return err
 	}
 
