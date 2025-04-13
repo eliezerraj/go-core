@@ -6,6 +6,7 @@ import(
 	"time"
 	"github.com/rs/zerolog/log"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/grpc/metadata"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -157,4 +158,29 @@ func (t *TracerProvider) SpanCtx(ctx context.Context, spanName string) (context.
 	)
 
 	return ctx, span
+}
+
+// For Grpc 
+type MetadataCarrier struct {
+	metadata.MD
+}
+
+func (mc MetadataCarrier) Get(key string) string {
+	values := mc.MD.Get(key)
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
+}
+
+func (mc MetadataCarrier) Set(key, value string) {
+	mc.MD.Set(key, value)
+}
+
+func (mc MetadataCarrier) Keys() []string {
+	keys := make([]string, 0, len(mc.MD))
+	for k := range mc.MD {
+		keys = append(keys, k)
+	}
+	return keys
 }
