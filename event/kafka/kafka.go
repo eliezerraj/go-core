@@ -104,12 +104,10 @@ func (p *ProducerWorker) NewProducerWorkerTX(kafkaConfigurations *KafkaConfigura
 }
 
 // Above Producer a event
-func (p *ProducerWorker) Producer(ctx context.Context, 
-									event_topic string, 
+func (p *ProducerWorker) Producer(	event_topic string, 
 									key string,
 									producer_headers *map[string]string,
 									payload []byte) (error){
-
 	childLogger.Debug().Str("func","Producer").Send()
 
 	deliveryChan := make(chan kafka.Event)
