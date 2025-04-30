@@ -209,6 +209,13 @@ func (p *ProducerWorker) AbortTransaction(ctx context.Context) error{
 	return nil
 }
 
+// Above Producer abort transaction
+func (p *ProducerWorker) Close(){
+	childLogger.Debug().Str("func","Close").Send()
+
+	p.producer.Close();
+}
+
 func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurations) (*ConsumerWorker, error) {
 	childLogger.Debug().Str("func","NewConsumerWorker").Send()
 

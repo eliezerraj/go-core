@@ -64,6 +64,8 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 	if err != nil {
 		t.Errorf("failed to connect kafka : %s", err)
 	}
+
+	producer_01.Close()
 }
 
 func TestGoCore_Kafka_ProducerTX(t *testing.T){
@@ -134,6 +136,8 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 	if err != nil {
 		t.Errorf("failed to CommitTransaction kafka : %s", err)
 	}
+
+	producer_01.Close()
 }
 
 func TestGoCore_Kafka_Consumer(t *testing.T){
