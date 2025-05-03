@@ -73,6 +73,7 @@ func Config(database_url string) (*pgxpool.Config) {
 	return dbConfig
 }
 
+// About create a database service
 func (d DatabasePGServer) NewDatabasePGServer(ctx context.Context, databaseConfig DatabaseConfig) (DatabasePGServer, error) {
 	childLogger.Debug().Str("func","NewDatabasePGServer").Send()
 	
@@ -98,6 +99,7 @@ func (d DatabasePGServer) NewDatabasePGServer(ctx context.Context, databaseConfi
 	}, nil
 }
 
+// About acquire connection from pool
 func (d DatabasePGServer) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	childLogger.Debug().Str("func","NewDatabasePGServer").Send()
 	
@@ -110,24 +112,28 @@ func (d DatabasePGServer) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	return connection, nil
 }
 
+// About release connection
 func (d DatabasePGServer) Release(connection *pgxpool.Conn) {
 	childLogger.Debug().Str("func","Release").Send()
 
 	defer connection.Release()
 }
 
+// About close a get connection
 func (d DatabasePGServer) GetConnection() (*pgxpool.Pool) {
 	childLogger.Debug().Str("func","GetConnection").Send()
 
 	return d.connPool
 }
 
+// About close a connection
 func (d DatabasePGServer) CloseConnection() {
 	childLogger.Debug().Str("func","CloseConnection").Send()
 
 	defer d.connPool.Close()
 }
 
+// About start a transaction
 func (d DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, error) {
 	childLogger.Debug().Str("func","StartTx").Send()
 
@@ -145,8 +151,16 @@ func (d DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, e
 	return tx, conn, nil
 }
 
+// About release the connection to pool connection
 func (d DatabasePGServer) ReleaseTx(connection *pgxpool.Conn) {
 	childLogger.Debug().Str("func","ReleaseTx").Send()
 
 	defer connection.Release()
+}
+
+// About get Stats from database
+func (d DatabasePGServer) Stat() (*pgxpool.Stat){
+	childLogger.Debug().Str("func","Stat").Send()
+
+	return d.connPool.Stat()
 }
