@@ -19,6 +19,7 @@ type JSONResponse struct {
 type CoreJson struct{
 }
 
+// About convert JSON
 func (c *CoreJson) ReadJSON(r *http.Request, w http.ResponseWriter, data interface{}) error {
 	childLogger.Debug().Str("func","ReadJSON").Send()
 
@@ -40,6 +41,7 @@ func (c *CoreJson) ReadJSON(r *http.Request, w http.ResponseWriter, data interfa
 	return nil
 }
 
+// About convert JSON
 func (c *CoreJson) WriteJSON(w http.ResponseWriter, code int, data interface{}) error {
 	childLogger.Debug().Str("func","WriteJSON").Send()
 	
@@ -60,14 +62,15 @@ func (c *CoreJson) WriteJSON(w http.ResponseWriter, code int, data interface{}) 
 
 type APIError struct {
 	StatusCode	int  `json:"statusCode"`
-	Msg			string `json:"msg"`
+	Msg			string `json:"message"`
+	TraceId		string `json:"trace-id,omitempty"`
 }
 
 func (e *APIError) Error() string {
 	return e.Msg
 }
 
-func (e *APIError) NewAPIError(err error, status ...int) APIError {
+func (e *APIError) NewAPIError(err error, traceId string, status ...int) APIError {
 	childLogger.Debug().Str("func","NewAPIError").Send()
 
 	statusCode := http.StatusBadRequest
@@ -79,5 +82,6 @@ func (e *APIError) NewAPIError(err error, status ...int) APIError {
 	return APIError{
 		StatusCode: statusCode,
 		Msg:		err.Error(),
+		TraceId:	traceId,
 	}
 }

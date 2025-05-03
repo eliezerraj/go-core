@@ -54,7 +54,7 @@ func TestCoreJson_WriteJSON(t *testing.T){
 func TestCoreJson_APIError(t *testing.T){
 	var apiError APIError
 
-	e := apiError.NewAPIError(errors.New("item not found"), http.StatusServiceUnavailable)
+	e := apiError.NewAPIError(errors.New("item not found"), "my-trace-id-000" ,http.StatusServiceUnavailable)
 
 	t.Logf("e: %v", e)
 }
