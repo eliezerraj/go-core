@@ -30,7 +30,7 @@ type DatabaseConfig struct {
 	DatabaseName		string `json:"databaseName"`
 	User				string `json:"user"`
 	Password			string `json:"password"`
-	Db_timeout			int	`json:"db_timeout"`
+	DbMax_Connection	int	`json:"db_max_connection"`
 	Postgres_Driver		string `json:"postgres_driver"`
 }
 
@@ -45,12 +45,19 @@ type DatabasePGServer struct {
 	connPool   	*pgxpool.Pool
 }
 
-func Config(database_url string) (*pgxpool.Config) {
+func Config(database_url string, maxConns ...int) (*pgxpool.Config) {
 	childLogger.Debug().Str("func","Config").Send()
 
-	const defaultMaxConns = int32(10)
+	// Default max connection
+	var_max_conns := 10
+
+	if len(maxConns) > 0 {
+		var_max_conns = maxConns[0]
+	}
+
+	defaultMaxConns := int32(var_max_conns)
 	const defaultMinConns = int32(2)
-	const defaultMaxConnLifetime = time.Hour
+	const defaultMaxConnLifetime = 30 * time.Minute
 	const defaultMaxConnIdleTime = time.Minute * 10
 	const defaultHealthCheckPeriod = time.Minute
 	const defaultConnectTimeout = time.Second * 5
@@ -95,7 +102,7 @@ func (d DatabasePGServer) NewDatabasePGServer(ctx context.Context, databaseConfi
 							databaseConfig.Port, 
 							databaseConfig.DatabaseName) 
 							
-	connPool, err := pgxpool.NewWithConfig(ctx, Config(connStr))
+	connPool, err := pgxpool.NewWithConfig(ctx, Config(connStr, databaseConfig.DbMax_Connection))
 	if err != nil {
 		return DatabasePGServer{}, err
 	}
