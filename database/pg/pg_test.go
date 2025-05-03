@@ -16,7 +16,8 @@ func TestGoCore_DatabasePGServer(t *testing.T){
 		Schema:	"public",			
 		DatabaseName: "postgres",		
 		User: "postgres",				
-		Password: "postgres",			
+		Password: "postgres",
+		DbMax_Connection: 30,
 		Postgres_Driver: "postgres",		
 	}
 
