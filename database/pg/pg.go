@@ -12,6 +12,17 @@ import (
 
 var childLogger = log.With().Str("component","go-core").Str("package", "database.pg").Logger()
 
+type PoolStats struct {
+	AcquireCount        int64 `json:"acquire_count"`
+	AcquiredConns       int32 `json:"acquired_conns"`
+	CanceledAcquireCount int64 `json:"canceled_acquire_count"`
+	ConstructingConns   int32 `json:"constructing_conns"`
+	EmptyAcquireCount   int64 `json:"empty_acquire_count"`
+	IdleConns           int32 `json:"idle_conns"`
+	MaxConns            int32 `json:"max_conns"`
+	TotalConns          int32 `json:"total_conns"`
+}
+
 type DatabaseConfig struct {
     Host 				string `json:"host"`
     Port  				string `json:"port"`
