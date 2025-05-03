@@ -63,7 +63,7 @@ func (c *CoreJson) WriteJSON(w http.ResponseWriter, code int, data interface{}) 
 type APIError struct {
 	StatusCode	int  `json:"statusCode"`
 	Msg			string `json:"message"`
-	TraceId		string `json:"trace-id,omitempty"`
+	TraceId		string `json:"request-id,omitempty"`
 }
 
 func (e *APIError) Error() string {
