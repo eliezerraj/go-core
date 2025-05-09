@@ -28,7 +28,7 @@ func TestGoCore_CallRestApi(t *testing.T){
 	apiService := NewRestApiService()
 
 	//-----------------------------------------------------
-	res, statusCode, err := apiService.CallRestApiV1(ctx, apiService.client, httpClient, nil)
+	res, statusCode, err := apiService.CallRestApiV1(ctx, apiService.Client, httpClient, nil)
 	if err != nil {
 		t.Errorf("err : %s", err)
 	}
