@@ -1,6 +1,8 @@
 package api
 
 import(
+	"io"
+	"io/ioutil"
 	"errors"
 	"net/http"
 	"time"
@@ -152,6 +154,15 @@ func (a *ApiService) CallRestApiV1(	ctx context.Context,
 		childLogger.Error().Err(err).Send()
 		return nil, http.StatusServiceUnavailable, errors.New(err.Error())
 	}
+
+	defer func() {
+		// Close body
+		childLogger.Debug().Str("func", "CallRestApiV1").Msg("Body.Close !!!")
+		if _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {
+			childLogger.Error().Err(err).Send()
+		}
+		resp.Body.Close()
+	}()
 
 	childLogger.Debug().Int("StatusCode :", resp.StatusCode).Msg("")
 	switch (resp.StatusCode) {
