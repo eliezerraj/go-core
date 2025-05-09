@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-/*func TestGoCore_CallRestApi(t *testing.T){
+func TestGoCore_CallRestApi(t *testing.T){
 
 	headers := map[string]string{
 		"Content-Type":  "application/json;charset=UTF-8",
@@ -15,7 +15,7 @@ import (
 	}
 
 	httpClient := HttpClient {
-		Url: 	"http://127.0.0.1:5001/info",
+		Url: 	"http://127.0.0.1:5000/stat",
 		Method: "GET",
 		Timeout: 3,
 		Headers: &headers,
@@ -28,7 +28,7 @@ import (
 	apiService := NewRestApiService()
 
 	//-----------------------------------------------------
-	res, statusCode, err := apiService.CallRestApi(ctx, httpClient, nil)
+	res, statusCode, err := apiService.CallRestApiV1(ctx, apiService.client, httpClient, nil)
 	if err != nil {
 		t.Errorf("err : %s", err)
 	}
@@ -36,8 +36,8 @@ import (
 	t.Logf("res: %v", res)
 	//--------------------------------
 
-	httpClient = HttpClient {
-		Url: 	"https://go-XXXXXX-lambda.architecture.caradhras.io/oauth_credential",
+	/*httpClient = HttpClient {
+		Url: 	"https://go-XXXXXX-lambda.architecture.stacaradhras.io/oauth_credential",
 		Method: "POST",
 		Timeout: 3,
 		Headers: &headers,
@@ -71,13 +71,13 @@ import (
 		t.Errorf("ops...the data supose not exists err : %s", err)
 	}
 	t.Logf("statusCode: %v", statusCode)
-	t.Logf("res: %v", res)
+	t.Logf("res: %v", res)*/
 
 	
 	//--------------------------------
-}*/
+}
 
-func TestGoCore_CallRestApi2(t *testing.T){
+/*func TestGoCore_CallRestApi2(t *testing.T){
 
 	headers := map[string]string{
 		"Content-Type":  "application/json;charset=UTF-8",
@@ -110,4 +110,4 @@ func TestGoCore_CallRestApi2(t *testing.T){
 	}
 	t.Logf("statusCode: %v", statusCode)
 	t.Logf("res: %v", res)	
-}
+}*/
