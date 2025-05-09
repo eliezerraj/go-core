@@ -24,7 +24,7 @@ var (
 )
 
 type ApiService struct {
-	client		*http.Client
+	Client		*http.Client
 }
 
 func NewRestApiService() *ApiService{
@@ -41,7 +41,7 @@ func NewRestApiService() *ApiService{
 	}
 
 	return &ApiService {
-		client: &client,
+		Client: &client,
 	}
 }
 
