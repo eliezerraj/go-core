@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"fmt"
 	"context"
 	"testing"
 	"encoding/json"
@@ -11,6 +12,69 @@ type Payload struct {
 	Name string `json:"name"`
 }
 
+func TestGoCore_Kafka_Producer_Iam(t *testing.T){
+
+	kafkaConfigurations := KafkaConfigurations{
+		Clientid: "GO-CORE-TEST",
+		Protocol: "SASL_SSL", //SASL_PLAINTEXT SASL_SSL
+		Mechanisms: "OAUTHBEARER", //PLAIN SCRAM-SHA-512 OAUTHBEARER
+		Brokers1: "b-2.mskarch02.sapk05.c3.kafka.us-east-2.amazonaws.com:9098",
+		Brokers2: "b-1.mskarch02.sapk05.c3.kafka.us-east-2.amazonaws.com:9098",		 
+		Brokers3: "b-2.mskarch02.sapk05.c3.kafka.us-east-2.amazonaws.com:9098",		 
+		Groupid:"GROUP-CORE-TEST",			 
+		Partition: 3,      
+		ReplicationFactor: 1,
+		RequiredAcks:  1,    
+	}
+
+	region := "us-east-2"
+	role := "arn:aws:iam::908671954593:role/iamMskAccessRole-eliezer"
+
+	fmt.Print(kafkaConfigurations)
+
+	var producerWorker ProducerWorker
+	
+	producer_01, err := producerWorker.NewProducerWorkerIam(context.Background(),
+															region,
+															role,
+															&kafkaConfigurations)
+	if err != nil {
+		t.Errorf("failed to create producer : %s", err)
+	}
+
+	key := "abc-123485"
+	event_topic := "EVENT.TEST"
+	payload := Payload{ID: 1, Name: "my teste"}
+
+	headers := make(map[string]string)
+	headers["my-custom-header-id"] = "MY-CUSTOM-HEADER-001"
+	headers["my-tracer-id"] = "MY-TRACER-TEST-002"
+
+	payload_bytes, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("failed to marshal payload : %s", err)
+	}
+
+	err = producer_01.Producer(event_topic, key, &headers, payload_bytes)
+	if err != nil {
+		t.Errorf("failed to connect kafka : %s", err)
+	}
+
+	key = "abc-45678"
+	payload = Payload{ID: 2, Name: "my teste no header"}
+	payload_bytes, err = json.Marshal(payload)
+	if err != nil {
+		t.Errorf("failed to marshal payload : %s", err)
+	}
+
+	err = producer_01.Producer( event_topic, key, nil, payload_bytes)
+	if err != nil {
+		t.Errorf("failed to connect kafka : %s", err)
+	}
+
+	producer_01.Close()
+}
+
 func TestGoCore_Kafka_Producer(t *testing.T){
 
 	kafkaConfigurations := KafkaConfigurations{
@@ -19,20 +83,22 @@ func TestGoCore_Kafka_Producer(t *testing.T){
 		Protocol: "SASL_SSL", //SASL_PLAINTEXT SASL_SSL
 		Mechanisms: "SCRAM-SHA-512", //PLAIN SCRAM-SHA-512
 		Clientid: "GO-CORE-TEST",
-		Brokers1: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",
-		Brokers2: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
-		Brokers3: "b-3.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
+		Brokers1: "b-2.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",
+		Brokers2: "b-1.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",		 
+		Brokers3: "b-3.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",	
 		Groupid:"GROUP-CORE-TEST",			 
 		Partition: 3,      
 		ReplicationFactor: 1,
 		RequiredAcks:  1,    
 	}
 
+	fmt.Print(kafkaConfigurations)
+
 	var producerWorker ProducerWorker
 	
 	producer_01, err := producerWorker.NewProducerWorker(&kafkaConfigurations)
 	if err != nil {
-		t.Errorf("failed to open database : %s", err)
+		t.Errorf("failed to create producer : %s", err)
 	}
 
 	key := "abc-123485"
@@ -76,9 +142,9 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 		Protocol: "SASL_SSL", //SASL_PLAINTEXT SASL_SSL
 		Mechanisms: "SCRAM-SHA-512", //PLAIN SCRAM-SHA-512
 		Clientid: "GO-CORE-TEST",
-		Brokers1: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",
-		Brokers2: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
-		Brokers3: "b-3.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
+		Brokers1: "b-2.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",
+		Brokers2: "b-1.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",		 
+		Brokers3: "b-3.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",	
 		Groupid:"GROUP-CORE-TEST",			 
 		Partition: 3,      
 		ReplicationFactor: 1,
@@ -89,7 +155,7 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 	
 	producer_01, err := producerWorker.NewProducerWorkerTX(&kafkaConfigurations)
 	if err != nil {
-		t.Errorf("failed to open database : %s", err)
+		t.Errorf("failed to create producer : %s", err)
 	}
 
 	key := "abc-12345"
@@ -148,9 +214,9 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 		Protocol: "SASL_SSL",
 		Mechanisms: "SCRAM-SHA-512",
 		Clientid: "GO-CORE-TEST",
-		Brokers1: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",
-		Brokers2: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
-		Brokers3: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
+		Brokers1: "b-2.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",
+		Brokers2: "b-1.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",		 
+		Brokers3: "b-3.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9096",			 
 		Groupid:"GROUP-CORE-TEST",			 
 		Partition: 3,      
 		ReplicationFactor: 1,
@@ -161,7 +227,7 @@ func TestGoCore_Kafka_Consumer(t *testing.T){
 
 	consumer_01, err := consumerWorker.NewConsumerWorker(&kafkaConfigurations)
 	if err != nil {
-		t.Errorf("failed to connect kafka : %s", err)
+		t.Errorf("failed to create consumer : %s", err)
 	}
 
 	event_topics := []string{"EVENT.TEST"}
