@@ -18,9 +18,12 @@ func TestGoCore_Kafka_Producer_Iam(t *testing.T){
 		Clientid: "GO-CORE-TEST",
 		Protocol: "SASL_SSL", //SASL_PLAINTEXT SASL_SSL
 		Mechanisms: "OAUTHBEARER", //PLAIN SCRAM-SHA-512 OAUTHBEARER
-		Brokers1: "b-2.mskarch02.sapk05.c3.kafka.us-east-2.amazonaws.com:9098",
-		Brokers2: "b-1.mskarch02.sapk05.c3.kafka.us-east-2.amazonaws.com:9098",		 
-		Brokers3: "b-2.mskarch02.sapk05.c3.kafka.us-east-2.amazonaws.com:9098",		 
+		Brokers1: "b-2.iam.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:14002",
+		Brokers2: "b-1.iam.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:14001",
+		Brokers3: "b-3.iam.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:14003",	 
+		//Brokers1: "b-1.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9098",
+		//Brokers2: "b-2.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9098",		 
+		//Brokers3: "b-3.mskarch03.djl80n.c3.kafka.us-east-2.amazonaws.com:9098",		 
 		Groupid:"GROUP-CORE-TEST",			 
 		Partition: 3,      
 		ReplicationFactor: 1,
@@ -28,9 +31,10 @@ func TestGoCore_Kafka_Producer_Iam(t *testing.T){
 	}
 
 	region := "us-east-2"
-	role := "arn:aws:iam::908671954593:role/iamMskAccessRole-eliezer"
+	role := "arn:aws:iam::992382474575:role/iamMSKAccessRole-Policy"
+	//role := "arn:aws:iam::908671954593:role/iamMskAccessRole-eliezer"
 
-	fmt.Print(kafkaConfigurations)
+	fmt.Println(kafkaConfigurations)
 
 	var producerWorker ProducerWorker
 	
