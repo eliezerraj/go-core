@@ -6,9 +6,12 @@ import(
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 	"math/rand/v2"
 
 	"github.com/rs/zerolog/log"
+
+	"github.com/aws/aws-msk-iam-sasl-signer-go/signer"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
@@ -42,6 +45,59 @@ type KafkaConfigurations struct {
 type Message struct {
 	Header 	*map[string]string
 	Payload string
+}
+
+func (p *ProducerWorker) NewProducerWorkerIam(	ctx context.Context,
+												region string,
+												role string,
+												kafkaConfigurations *KafkaConfigurations) (*ProducerWorker, error) {
+	childLogger.Debug().Str("func","NewProducerWorkerIam").Send()
+
+	token, tokenExpirationTime, err := signer.GenerateAuthTokenFromRole(ctx, 
+																		region, 
+																		role, 
+																		"go-core-sts-session")
+	if err != nil {
+		childLogger.Error().Err(err).Send()
+		return nil, err
+	}
+
+	seconds := tokenExpirationTime / 1000
+	nanoseconds := (tokenExpirationTime % 1000) * 1000000
+
+	bearerToken := kafka.OAuthBearerToken{
+		TokenValue: token,
+		Expiration: time.Unix(seconds, nanoseconds),
+	}
+
+	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
+	
+	config := &kafka.ConfigMap{	"bootstrap.servers":            kafkaBrokerUrls,
+								"security.protocol":            kafkaConfigurations.Protocol, //"SASL_SSL",
+								"sasl.mechanisms":              kafkaConfigurations.Mechanisms, //"SCRAM-SHA-256",
+								"acks": 						"all", // acks=0  acks=1 acks=all
+								"message.timeout.ms":			5000,
+								"retries":						5,
+								"retry.backoff.ms":				500,
+								"enable.idempotence":			true,
+								"go.logs.channel.enable": 		true,                    
+								}
+
+	producer, err := kafka.NewProducer(config)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("erro NewProducer")
+		return nil, err
+	}
+
+	err = producer.SetOAuthBearerToken(bearerToken)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("erro SetOAuthBearerToken")
+		return nil, err
+	}
+
+	return &ProducerWorker{ kafkaConfigurations : kafkaConfigurations,
+							producer : producer,
+	}, nil
 }
 
 func (p *ProducerWorker) NewProducerWorker(kafkaConfigurations *KafkaConfigurations) (*ProducerWorker, error) {
@@ -141,9 +197,9 @@ func (p *ProducerWorker) Producer(event_topic string,
 	m := e.(*kafka.Message)
 
 	if m.TopicPartition.Error != nil {
-		childLogger.Debug().Msg("+ ERROR + + ERROR + +  ERROR +")	
+		childLogger.Debug().Msg("+ ERROR ++ ERROR ++ ERROR +")	
 		childLogger.Error().Err(m.TopicPartition.Error).Msg("delivery failed")
-		childLogger.Debug().Msg("+ ERROR + + ERROR + +  ERROR +")
+		childLogger.Debug().Msg("+ ERROR ++ ERROR ++  ERROR +")
 		
 		return m.TopicPartition.Error
 	}
@@ -232,8 +288,7 @@ func (c *ConsumerWorker) NewConsumerWorker(kafkaConfigurations *KafkaConfigurati
 								"client.id": 					kafkaConfigurations.Clientid,
 								"session.timeout.ms":    		6000,
 								"enable.idempotence":			true,
-								// "auto.offset.reset":     	"latest", 
-								"auto.offset.reset":     		"earliest",  
+								"auto.offset.reset":     		"earliest",  // "earliest" "latest"
 								}
 
 	consumer, err := kafka.NewConsumer(config)
