@@ -76,3 +76,49 @@ func (r *RedisClusterServer) Set(ctx context.Context, key string, valueReg inter
 
 	return true, nil
 }
+
+type RedisClient struct {
+	clientCache *redis.Client
+}
+
+func (r *RedisClient) NewRedisClientCache(options *redis.Options) *RedisClient {
+	childLogger.Debug().Str("func","NewRedisClientCache").Send()
+
+	redisClient := redis.NewClient(options)
+
+	return &RedisClient{
+		clientCache: redisClient,
+	}
+}
+
+func (r *RedisClient) Ping(ctx context.Context) (*string, error) {
+	childLogger.Debug().Str("func","Ping").Send()
+
+	status, err := r.clientCache.Ping(ctx).Result()
+	if err != nil {
+		return nil, err
+	}
+	return &status, nil
+}
+
+func (r *RedisClient) Set(ctx context.Context, key string, valueReg interface{}) (bool, error) {
+	childLogger.Debug().Str("func","Set").Send()
+
+	err := r.clientCache.Set(ctx, key, valueReg , 0).Err()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (r *RedisClient) Get(ctx context.Context, key string) (interface{}, error) {
+	childLogger.Debug().Str("func","Get").Send()
+
+	res, err := r.clientCache.Get(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
