@@ -6,17 +6,18 @@ import (
 	"strings"
 	"context"
 	"strconv"
+	"time"
 	redis "github.com/redis/go-redis/v9"
 )
 
-func TestRedisClient(t *testing.T){
+func TestRedisClientSetGet(t *testing.T){
 
 	var redisClientCache 	RedisClient
 	var optRedisClient		redis.Options
 
-	optRedisClient.Username = "user-04"
+	optRedisClient.Username = "user-02"
 	optRedisClient.Password = "MyCachePassword123!"
-	optRedisClient.Addr = "master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
+	optRedisClient.Addr = "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
 
 	if true {
 		optRedisClient.TLSConfig = &tls.Config{
@@ -32,10 +33,13 @@ func TestRedisClient(t *testing.T){
 		t.Errorf("failed to ping redis : %s", err)
 	}
 
-	key := "user-04" + ":credit_card:" + "number"
-	value := "000.111.555.555"
+	ttl := 30 * time.Minute
+	key := "user-04" + ":debit_card:" + "number"
+	value := "222.444.444.444"
 	
-	res_bol, err := clientCache.Set(context.Background(), key, value)
+	t.Logf("key:%v value:%v", key, value)
+
+	res_bol, err := clientCache.Set(context.Background(), key, value, ttl)
 	if err != nil {
 		t.Errorf("failed to Set : %s", err)
 	}
@@ -51,7 +55,43 @@ func TestRedisClient(t *testing.T){
 	t.Logf("success key %v result: %v :", key,res)
 }
 
-func TestRedisCluster_Add(t *testing.T){
+func TestRedisClientGet(t *testing.T){
+
+	var redisClientCache 	RedisClient
+	var optRedisClient		redis.Options
+
+	optRedisClient.Username = "user-03"
+	optRedisClient.Password = "MyCachePassword123!"
+	optRedisClient.Addr = "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
+
+	if true {
+		optRedisClient.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
+	t.Logf("optRedisClient.Username: %v ", optRedisClient.Username)
+
+	clientCache := redisClientCache.NewRedisClientCache(&optRedisClient)
+	_, err := clientCache.Ping(context.Background())
+	if err != nil {
+		t.Errorf("failed to ping redis : %s", err)
+	}
+
+	key := "user-03" + ":credit_card:" + "number"
+	value := "333.333.333.333"
+
+	t.Logf("key:%v value:%v", key, value, )
+
+	res, err := clientCache.Get(context.Background(), key)
+	if err != nil {
+		t.Errorf("failed to Get : %s", err)
+	}
+
+	t.Logf("success key %v result: %v :", key,res)
+}
+
+func TestRedisCluster(t *testing.T){
 
 	var envCacheCluster	redis.ClusterOptions
 	var redisClusterServer RedisClusterServer
@@ -98,7 +138,4 @@ func TestRedisCluster_Add(t *testing.T){
 	} else {
 		t.Errorf("Error : %v %v", value_assert, value)
 	}
-
-
-
 }
