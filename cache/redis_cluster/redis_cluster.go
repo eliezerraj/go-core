@@ -1,6 +1,7 @@
 package redis_cluster
 
 import (
+	"time"
 	"context"
 	"github.com/rs/zerolog/log"
 
@@ -69,13 +70,15 @@ func (r *RedisClusterServer) GetCount(ctx context.Context, key string, valueReg 
 func (r *RedisClusterServer) Set(ctx context.Context, key string, valueReg interface{}) (bool, error) {
 	childLogger.Debug().Str("func","Set").Send()
 
-	err := r.cache.Set(ctx, key, valueReg , 0).Err()
+	err := r.cache.Set(ctx, key, valueReg, 0).Err()
 	if err != nil {
 		return false, err
 	}
 
 	return true, nil
 }
+
+//---------------------------------------------------
 
 type RedisClient struct {
 	clientCache *redis.Client
@@ -101,10 +104,10 @@ func (r *RedisClient) Ping(ctx context.Context) (*string, error) {
 	return &status, nil
 }
 
-func (r *RedisClient) Set(ctx context.Context, key string, valueReg interface{}) (bool, error) {
+func (r *RedisClient) Set(ctx context.Context, key string, valueReg interface{}, ttl time.Duration) (bool, error) {
 	childLogger.Debug().Str("func","Set").Send()
 
-	err := r.clientCache.Set(ctx, key, valueReg , 0).Err()
+	err := r.clientCache.Set(ctx, key, valueReg , ttl).Err()
 	if err != nil {
 		return false, err
 	}
