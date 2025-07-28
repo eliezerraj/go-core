@@ -52,7 +52,7 @@ func TestRedisClientSetGet(t *testing.T){
 		t.Errorf("failed to Get : %s", err)
 	}
 
-	t.Logf("success key %v result: %v :", key,res)
+	t.Logf("SUCESS !!!! key: %v value: %v", key,res)
 }
 
 func TestRedisClientGet(t *testing.T){
@@ -60,7 +60,7 @@ func TestRedisClientGet(t *testing.T){
 	var redisClientCache 	RedisClient
 	var optRedisClient		redis.Options
 
-	optRedisClient.Username = "user-03"
+	optRedisClient.Username = "user-02"
 	optRedisClient.Password = "MyCachePassword123!"
 	optRedisClient.Addr = "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
 
@@ -78,17 +78,16 @@ func TestRedisClientGet(t *testing.T){
 		t.Errorf("failed to ping redis : %s", err)
 	}
 
-	key := "user-03" + ":credit_card:" + "number"
-	value := "333.333.333.333"
+	key := "ACC-2:idepotent_status:5fe07cfc-6ca6-4910-b780-2d194057bf91"//"user-03" + ":credit_card:" + "number"
 
-	t.Logf("key:%v value:%v", key, value, )
+	t.Logf("key:%v", key)
 
 	res, err := clientCache.Get(context.Background(), key)
 	if err != nil {
 		t.Errorf("failed to Get : %s", err)
 	}
 
-	t.Logf("success key %v result: %v :", key,res)
+	t.Logf("SUCESS !!!! key: %v value: %v", key,res)
 }
 
 func TestRedisCluster(t *testing.T){
