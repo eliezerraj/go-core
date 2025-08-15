@@ -8,6 +8,7 @@ import(
 	"time"
 	"encoding/json"
 	"bytes"
+	"syscall"
 	"context"
 
 	"github.com/rs/zerolog/log"
@@ -27,6 +28,14 @@ type ApiService struct {
 	Client		*http.Client
 }
 
+type HttpClient struct{
+	Url 	string
+	Method 	string
+	Timeout time.Duration
+	Headers *map[string]string
+}
+
+// Above create a api rest
 func NewRestApiService() *ApiService{
 	childLogger.Debug().Str("func","NewRestApiService").Send()
 
@@ -34,7 +43,7 @@ func NewRestApiService() *ApiService{
 		MaxIdleConns:	100,
 		MaxConnsPerHost: 100,
 		MaxIdleConnsPerHost: 100,
-		IdleConnTimeout:	10 * time.Second,
+		IdleConnTimeout:	100 * time.Second,
 	}
 
 	client := http.Client{
@@ -47,13 +56,7 @@ func NewRestApiService() *ApiService{
 	}
 }
 
-type HttpClient struct{
-	Url 	string
-	Method 	string
-	Timeout time.Duration
-	Headers *map[string]string
-}
-
+// Above do a call rest api
 func (a *ApiService) CallRestApiV1(	ctx context.Context,
 									client	*http.Client,		
 									httpClient HttpClient,
@@ -87,6 +90,11 @@ func (a *ApiService) CallRestApiV1(	ctx context.Context,
 	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		childLogger.Error().Err(err).Send()
+		if errors.Is(err, syscall.EPIPE) {
+			childLogger.Error().Err(err).Msg("WARNING: BROKEN PIPE ERROR")
+        } else if errors.Is(err, syscall.ECONNRESET)  {
+			childLogger.Error().Err(err).Msg("CONNECTION RESET BY PIER")
+		}
 		return nil, http.StatusServiceUnavailable, errors.New(err.Error())
 	}
 
