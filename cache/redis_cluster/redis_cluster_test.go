@@ -15,9 +15,9 @@ func TestRedisClientSetGet(t *testing.T){
 	var redisClientCache 	RedisClient
 	var optRedisClient		redis.Options
 
-	optRedisClient.Username = "user-02"
+	optRedisClient.Username = "user-03"
 	optRedisClient.Password = "MyCachePassword123!"
-	optRedisClient.Addr = "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
+	optRedisClient.Addr = "master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
 
 	if true {
 		optRedisClient.TLSConfig = &tls.Config{
@@ -26,33 +26,35 @@ func TestRedisClientSetGet(t *testing.T){
 	}
 
 	t.Logf("optRedisClient.Username: %v ", optRedisClient.Username)
+	t.Logf("optRedisClient.Password: %v ", optRedisClient.Password)
+	t.Logf("optRedisClient.Addr: %v ", optRedisClient.Addr)
 
 	clientCache := redisClientCache.NewRedisClientCache(&optRedisClient)
 	_, err := clientCache.Ping(context.Background())
 	if err != nil {
-		t.Errorf("failed to ping redis : %s", err)
+		t.Errorf("FAILED to ping redis : %s", err)
 	}
 
 	ttl := 30 * time.Minute
-	key := "user-04" + ":debit_card:" + "number"
-	value := "222.444.444.444"
+	key := "user-03" + ":issuer:" + "acme"
+	value := "105"
 	
 	t.Logf("key:%v value:%v", key, value)
 
 	res_bol, err := clientCache.Set(context.Background(), key, value, ttl)
 	if err != nil {
-		t.Errorf("failed to Set : %s", err)
+		t.Errorf("FAILED !!! to Set : %s", err)
 	}
 	if (!res_bol) {
-		t.Errorf("failed to Set (FALSE) %v ", res_bol)
+		t.Errorf("FAILED !!! to Set (FALSE) %v ", res_bol)
 	}
 
 	res, err := clientCache.Get(context.Background(), key)
 	if err != nil {
-		t.Errorf("failed to Get : %s", err)
+		t.Errorf("FAILED !!! key : %s", err)
+	} else {
+		t.Logf("SUCCESS !!!! key: %v value: %v", key,res)
 	}
-
-	t.Logf("SUCESS !!!! key: %v value: %v", key,res)
 }
 
 func TestRedisClientGet(t *testing.T){
@@ -62,7 +64,7 @@ func TestRedisClientGet(t *testing.T){
 
 	optRedisClient.Username = "user-02"
 	optRedisClient.Password = "MyCachePassword123!"
-	optRedisClient.Addr = "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
+	optRedisClient.Addr = "master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
 
 	if true {
 		optRedisClient.TLSConfig = &tls.Config{
@@ -75,19 +77,19 @@ func TestRedisClientGet(t *testing.T){
 	clientCache := redisClientCache.NewRedisClientCache(&optRedisClient)
 	_, err := clientCache.Ping(context.Background())
 	if err != nil {
-		t.Errorf("failed to ping redis : %s", err)
+		t.Errorf("FAILED to ping redis : %s", err)
 	}
 
-	key := "ACC-2:idepotent_status:5fe07cfc-6ca6-4910-b780-2d194057bf91"//"user-03" + ":credit_card:" + "number"
+	key := "user-03" + ":issuer:" + "acme" //"ACC-2:idepotent_status:5fe07cfc-6ca6-4910-b780-2d194057bf91"//
 
 	t.Logf("key:%v", key)
 
 	res, err := clientCache.Get(context.Background(), key)
 	if err != nil {
-		t.Errorf("failed to Get : %s", err)
+		t.Errorf("FAILED !!! key : %s", err)
+	} else {
+		t.Logf("SUCCESS !!!! key: %v value: %v", key,res)
 	}
-
-	t.Logf("SUCESS !!!! key: %v value: %v", key,res)
 }
 
 func TestRedisCluster(t *testing.T){
@@ -97,7 +99,7 @@ func TestRedisCluster(t *testing.T){
 
 	envCacheCluster.Username = ""
 	envCacheCluster.Password = ""
-	envCacheCluster.Addrs = strings.Split("arch-valkey-01.vovqz2.ng.0001.use2.cache.amazonaws.com:6379", ",") 
+	envCacheCluster.Addrs = strings.Split("master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379", ",") 
 
 	if !strings.Contains(envCacheCluster.Addrs[0], "127.0.0.1") {
 		envCacheCluster.TLSConfig = &tls.Config{
