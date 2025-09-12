@@ -15,9 +15,12 @@ func TestRedisClientSetGet(t *testing.T){
 	var redisClientCache 	RedisClient
 	var optRedisClient		redis.Options
 
-	optRedisClient.Username = "user-03"
+	optRedisClient.Username = "user-02"
 	optRedisClient.Password = "MyCachePassword123!"
-	optRedisClient.Addr = "master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
+	optRedisClient.Addr 	= "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379"
+	optRedisClient.PoolSize =     10              // Maximum number of connections in the pool
+	optRedisClient.MinIdleConns = 5               // Minimum number of idle connections
+	optRedisClient.PoolTimeout =  5 * time.Second // Timeout for getting a connection from the pool
 
 	if true {
 		optRedisClient.TLSConfig = &tls.Config{
@@ -64,7 +67,7 @@ func TestRedisClientGet(t *testing.T){
 
 	optRedisClient.Username = "user-02"
 	optRedisClient.Password = "MyCachePassword123!"
-	optRedisClient.Addr = "master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
+	optRedisClient.Addr = "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379" 
 
 	if true {
 		optRedisClient.TLSConfig = &tls.Config{
@@ -99,7 +102,7 @@ func TestRedisCluster(t *testing.T){
 
 	envCacheCluster.Username = ""
 	envCacheCluster.Password = ""
-	envCacheCluster.Addrs = strings.Split("master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379", ",") 
+	envCacheCluster.Addrs = strings.Split("arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379", ",") 
 
 	if !strings.Contains(envCacheCluster.Addrs[0], "127.0.0.1") {
 		envCacheCluster.TLSConfig = &tls.Config{
