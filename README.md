@@ -11,6 +11,7 @@ A reusable Go module with commonly used tools.
     - dynamo
     - paramter store
     - secret manager
+    - feature flag
 - cache (redis cluster)
     - Get
     - SetCount

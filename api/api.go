@@ -89,11 +89,12 @@ func (a *ApiService) CallRestApiV1(	ctx context.Context,
 
 	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
-		childLogger.Error().Err(err).Send()
 		if errors.Is(err, syscall.EPIPE) {
 			childLogger.Error().Err(err).Msg("WARNING: BROKEN PIPE ERROR")
         } else if errors.Is(err, syscall.ECONNRESET)  {
 			childLogger.Error().Err(err).Msg("CONNECTION RESET BY PIER")
+		} else {
+			childLogger.Error().Err(err).Send()
 		}
 		return nil, http.StatusServiceUnavailable, errors.New(err.Error())
 	}
