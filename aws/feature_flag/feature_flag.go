@@ -39,7 +39,7 @@ func (p *AwsConfigFeatureFlag) StartConfigurationSession(	ctx context.Context,
 							ApplicationIdentifier: &applicationID,
 							ConfigurationProfileIdentifier: &configurationProfileID,
 							EnvironmentIdentifier: &environmentID,
-							RequiredMinimumPollIntervalInSeconds: func(i int32) *int32 { return &i }(15), // Poll every 15 seconds
+							RequiredMinimumPollIntervalInSeconds: aws.Int32(15), // Poll every 15 seconds
 	}
 
 	startSessionOutput, err := p.Client.StartConfigurationSession(ctx, featureFlagConfig)
