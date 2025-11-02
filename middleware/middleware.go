@@ -21,24 +21,31 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		childLogger.Debug().Msg("................ MiddleWareHandlerHeader. (INICIO) ..........")
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers","Content-Type,access-control-allow-origin, access-control-allow-headers")
-		w.Header().Set("strict-transport-security","max-age=63072000; includeSubdomains; preloa")
-		w.Header().Set("content-security-policy","default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; frame-ancestors 'none'")
-		w.Header().Set("x-content-type-option","nosniff")
-		w.Header().Set("x-frame-options","DENY")
-		w.Header().Set("x-xss-protection","1; mode=block")
-		w.Header().Set("referrer-policy","same-origin")
-		w.Header().Set("permission-policy","Content-Type,access-control-allow-origin, access-control-allow-headers")
+		// --- CORS CONFIGURATION ---
+		w.Header().Set("Access-Control-Allow-Origin", "*") // or restrict to specific origin
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
 
-		// set the resquet-id
-		var header_req_str = ""
-		if len(r.Header.Values("X-Request-Id")) > 0 {
-			header_req_str = r.Header["X-Request-Id"][0]
+		// --- Security Headers ---
+		w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; frame-ancestors 'none'")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "same-origin")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
 		}
-		ctx := context.WithValue(r.Context(), "trace-request-id", header_req_str)
-		r = r.WithContext(ctx)
+
+		w.Header().Set("Content-Type", "application/json")
+
+		// --- Set request ID in context if exists ---
+		if vals := r.Header.Values("X-Request-Id"); len(vals) > 0 {
+			ctx := context.WithValue(r.Context(), "trace-request-id", vals[0])
+			r = r.WithContext(ctx)
+		}
 
 		childLogger.Debug().Msg("........... MiddleWareHandlerHeader. (FIM) ..........")
 
