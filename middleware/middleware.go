@@ -22,9 +22,9 @@ func (t *ToolsMiddleware) MiddleWareHandlerHeader(next http.Handler) http.Handle
 		childLogger.Debug().Msg("................ MiddleWareHandlerHeader. (INICIO) ..........")
 
 		// --- CORS CONFIGURATION ---
-		w.Header().Set("Access-Control-Allow-Origin", "*") // or restrict to specific origin
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Amz-Date, X-Api-Key, X-Amz-Security-Token")
 
 		// --- Security Headers ---
 		w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
