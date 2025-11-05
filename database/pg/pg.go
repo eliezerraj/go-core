@@ -26,13 +26,10 @@ type PoolStats struct {
 type DatabaseConfig struct {
     Host 				string `json:"host"`
     Port  				string `json:"port"`
-	Schema				string `json:"schema"`
 	DatabaseName		string `json:"databaseName"`
 	User				string `json:"user"`
 	Password			string `json:"password"`
 	DbMax_Connection	int	`json:"db_max_connection"`
-	Postgres_Driver		string `json:"postgres_driver"`
-}
 
 type DatabasePG interface {
 	GetConnection() (*pgxpool.Pool)
