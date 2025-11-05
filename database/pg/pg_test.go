@@ -12,13 +12,11 @@ func TestGoCore_DatabasePGServer(t *testing.T){
 
 	databaseConfig := DatabaseConfig{
 		Host: "127.0.0.1", 				
-		Port: "5432", 				
-		Schema:	"public",			
+		Port: "5432", 						
 		DatabaseName: "postgres",		
 		User: "postgres",				
 		Password: "postgres",
-		DbMax_Connection: 30,
-		Postgres_Driver: "postgres",		
+		DbMax_Connection: 30,		
 	}
 
 	ctx, cancel := context.WithTimeout(	context.Background(), 
