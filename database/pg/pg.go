@@ -30,6 +30,7 @@ type DatabaseConfig struct {
 	User				string `json:"user"`
 	Password			string `json:"password"`
 	DbMax_Connection	int	`json:"db_max_connection"`
+}
 
 type DatabasePG interface {
 	GetConnection() (*pgxpool.Pool)
