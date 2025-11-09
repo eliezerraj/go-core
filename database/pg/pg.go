@@ -180,3 +180,18 @@ func (d DatabasePGServer) Stat() (*pgxpool.Stat){
 
 	return d.connPool.Stat()
 }
+
+// About ping from database
+func (d DatabasePGServer) Ping() (error){		
+	childLogger.Debug().Str("func","Ping").Send()
+	
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()	
+
+	err := d.connPool.Ping(ctx)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("error ping database")
+		return err
+	}	
+	return nil
+}	

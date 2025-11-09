@@ -53,5 +53,12 @@ func TestGoCore_DatabasePGServer(t *testing.T){
 	// Convert to JSON
 	jsonBytes, _ := json.MarshalIndent(statsJSON, "", "  ")
 
-	t.Logf("stats: %v", string(jsonBytes) )
+	t.Logf("stats: %v", string(jsonBytes))
+
+	err = databasePG.Ping()
+	if err != nil {
+		t.Errorf("failed to ping : %s", err)
+	}
+
+	t.Logf("Ping Successful !!!")
 }
