@@ -70,7 +70,9 @@ func (e *APIError) Error() string {
 	return e.Msg
 }
 
-func (e *APIError) NewAPIError(err error, traceId string, status ...int) APIError {
+func (e *APIError) NewAPIError(	err error, 
+								traceId string, 
+								status ...int) APIError {
 	childLogger.Debug().Str("func","NewAPIError").Send()
 
 	statusCode := http.StatusBadRequest
