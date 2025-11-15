@@ -17,7 +17,9 @@ import(
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
-var childLogger = log.With().Str("component","go-core").Str("package", "observability").Logger()
+var childLogger = log.With().
+					Str("component","go-core").
+					Str("package", "observability").Logger()
 
 type InfoTrace struct {
 	PodName				string `json:"pod_name"`
@@ -66,22 +68,21 @@ func buildResources(ctx context.Context, infoTrace *InfoTrace, configOTEL *Confi
 func (t *TracerProvider) NewTracerProvider(	ctx context.Context, 
 											configOTEL *ConfigOTEL, 
 											infoTrace 	*InfoTrace) *sdktrace.TracerProvider {
-	childLogger.Debug().Str("func","NewTracerProvider").Send()
-	
-	// turn on/off the tracer
-	if !configOTEL.UseStdoutTracerExporter && !configOTEL.UseOtlpCollector {
-		return nil
-	}
+	childLogger.Debug().
+				Str("func","NewTracerProvider").Send()
 
 	var stdout_export sdktrace.SpanExporter
 	var err error
+
 	if configOTEL.UseStdoutTracerExporter {
 		stdout_export, err = stdouttrace.New()
 		if err != nil {
-			childLogger.Error().Err(err).Msg("error creating stdout logging exporter")
+			childLogger.Warn().
+						Err(nil).
+						Msg("Error creating stdout logging exporter WARNING")
 		}
 	}
-	
+
 	var auth_option otlptracegrpc.Option
 	auth_option = otlptracegrpc.WithInsecure()
 
@@ -97,7 +98,9 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 										otlptracegrpc.WithEndpoint(configOTEL.OtelExportEndpoint),
 									),)
 	if err != nil {
-		childLogger.Error().Err(err).Msg("failed to create OTEL trace exporter")
+		childLogger.Error().
+					Err(err).
+					Msg("failed to create OTEL trace exporter")
 	}
 
 	resources, err := buildResources(ctx, infoTrace, configOTEL)
@@ -129,13 +132,13 @@ func (t *TracerProvider) Span(ctx context.Context, spanName string) trace.Span {
 
 	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
 	
-	_, span := tracer.Start(
-							ctx,
+	_, span := tracer.Start(ctx,
 							spanName,
 							trace.WithSpanKind(trace.SpanKindConsumer),
 							trace.WithAttributes(
-								attribute.String("trace-request-id", trace_id)),
-	)
+								attribute.String("trace-request-id", trace_id),
+							),
+						)
 
 	return span
 }
@@ -149,13 +152,13 @@ func (t *TracerProvider) SpanCtx(ctx context.Context, spanName string) (context.
 
 	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
 	
-	ctx, span := tracer.Start(
-							ctx,
-							spanName,
-							trace.WithSpanKind(trace.SpanKindConsumer),
-							trace.WithAttributes(
-								attribute.String("trace-request-id", trace_id)),
-	)
+	ctx, span := tracer.Start(	ctx,
+								spanName,
+								trace.WithSpanKind(trace.SpanKindConsumer),
+								trace.WithAttributes(
+									attribute.String("trace-request-id", trace_id),
+								),
+							)
 
 	return ctx, span
 }

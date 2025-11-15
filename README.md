@@ -55,3 +55,4 @@ go get -u github.com/eliezerraj/go-core
 ## Test
 
 go test -v --run TestRedisClient
+
