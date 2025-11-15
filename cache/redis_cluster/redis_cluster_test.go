@@ -10,6 +10,35 @@ import (
 	redis "github.com/redis/go-redis/v9"
 )
 
+
+func TestRedisClientPing(t *testing.T){
+	var redisClientCache 	RedisClient
+	var optRedisClient		redis.Options
+
+	optRedisClient.Username = "user-02"
+	optRedisClient.Password = "MyCachePassword123!"
+	optRedisClient.Addr 	= "arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379"
+	optRedisClient.PoolSize =     10              // Maximum number of connections in the pool
+	optRedisClient.MinIdleConns = 5               // Minimum number of idle connections
+	optRedisClient.PoolTimeout =  5 * time.Second // Timeout for getting a connection from the pool
+
+	if true {
+		optRedisClient.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
+	t.Logf("optRedisClient.Username: %v ", optRedisClient.Username)
+	t.Logf("optRedisClient.Password: %v ", optRedisClient.Password)
+	t.Logf("optRedisClient.Addr: %v ", optRedisClient.Addr)
+
+	clientCache := redisClientCache.NewRedisClientCache(&optRedisClient)
+	_, err := clientCache.Ping(context.Background())
+	if err != nil {
+		t.Errorf("FAILED to ping redis : %s", err)
+	}
+}
+
 func TestRedisClientSetGet(t *testing.T){
 
 	var redisClientCache 	RedisClient
