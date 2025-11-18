@@ -25,7 +25,7 @@ type HttpClientParameter struct{
 	Method 	string
 	Timeout time.Duration
 	Headers *map[string]string
-	body 	interface{}
+	Body 	interface{}
 }
 
 // Above create a http service
@@ -63,11 +63,11 @@ func (d *HttpService) DoHttp(ctx context.Context,
 			Str("func","DoHttp").Send()
 
 	d.logger.Debug().
-			Interface("body", httpClientParameter.body).Send()
+			Interface("Body", httpClientParameter.Body).Send()
 
 	payload := new(bytes.Buffer) 
-	if httpClientParameter.body != nil{
-		json.NewEncoder(payload).Encode(httpClientParameter.body)
+	if httpClientParameter.Body != nil{
+		json.NewEncoder(payload).Encode(httpClientParameter.Body)
 	}
 
 	req, err := http.NewRequestWithContext(	ctx, 
@@ -134,7 +134,7 @@ func (d *HttpService) DoHttp(ctx context.Context,
 			return nil, http.StatusInternalServerError, nil
 	}
 
-	result := httpClientParameter.body
+	result := httpClientParameter.Body
 	err = json.NewDecoder(resp.Body).Decode(&result)
     if err != nil {
 		d.logger.Error().
