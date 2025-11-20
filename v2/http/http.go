@@ -31,7 +31,7 @@ type HttpClientParameter struct{
 // Above create a http service
 func NewHttpService(appLogger *zerolog.Logger) *HttpService{
 	logger := appLogger.With().
-						Str("component", "go-core.http").
+						Str("component", "go-core.v2.http").
 						Logger()
 	logger.Debug().
 			Str("func","NewHttpService").Send()
