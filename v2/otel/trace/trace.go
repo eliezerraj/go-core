@@ -15,8 +15,11 @@ import(
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/sdk/resource"
+
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+// Struct for tracer information
 type InfoTrace struct {
 	Name			string `json:"service_name,omitempty"`
 	Version			string `json:"service_version,omitempty"`
@@ -25,6 +28,7 @@ type InfoTrace struct {
 	Account			string `json:"account,omitempty"`
 }
 
+// Struct for enviroment information
 type EnvTrace struct {
 	OtelExportEndpoint			string
 	TimeInterval            	int64    `mapstructure:"TimeInterval"`
@@ -38,6 +42,7 @@ type EnvTrace struct {
 	UseOtlpCollector			bool	 `mapstructure:"UseOtlpCollector"`   
 }
 
+// Tracer provider object
 type TracerProvider struct {
 }
 
@@ -102,6 +107,7 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 	return tp
 }
 
+// About set attributes
 func attributes(infoTrace InfoTrace, 
 				envTrace EnvTrace) []attribute.KeyValue {
 
@@ -116,6 +122,7 @@ func attributes(infoTrace InfoTrace,
 	}
 }
 
+// About create resourcer (attributes)
 func buildResources(ctx context.Context, 
 					infoTrace InfoTrace, 
 					envTrace EnvTrace) (*resource.Resource, error) {
@@ -127,7 +134,7 @@ func buildResources(ctx context.Context,
 
 // About create a span and return the context
 func (t *TracerProvider) SpanCtx(ctx context.Context, 
-								spanName string) (context.Context, trace.Span) {
+								 spanName string) (context.Context, trace.Span) {
 	
 	// get tracer id
 	trace_id := "not-informed"
@@ -143,4 +150,56 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 							)
 
 	return ctx, span
+}
+
+// ----------------------------------------------
+// Helper kafka header OTEL
+// ----------------------------------------------
+
+type KafkaHeaderCarrier struct {
+	Headers *[]kafka.Header
+}
+
+func (c KafkaHeaderCarrier) Get(key string) string {
+	for _, h := range *c.Headers {
+		if h.Key == key {
+			return string(h.Value)
+		}
+	}
+	return ""
+}
+
+func (c KafkaHeaderCarrier) Set(key string, value string) {
+	// remove existing key
+	newHeaders := make([]kafka.Header, 0)
+	for _, h := range *c.Headers {
+		if h.Key != key {
+			newHeaders = append(newHeaders, h)
+		}
+	}
+	// append new key
+	newHeaders = append(newHeaders, kafka.Header{
+		Key:   key,
+		Value: []byte(value),
+	})
+	*c.Headers = newHeaders
+}
+
+func (c KafkaHeaderCarrier) Keys() []string {
+	keys := make([]string, 0, len(*c.Headers))
+	for _, h := range *c.Headers {
+		keys = append(keys, h.Key)
+	}
+	return keys
+}
+
+func (c KafkaHeaderCarrier) MapToKafkaHeaders(m map[string]string) []kafka.Header {
+    hdrs := make([]kafka.Header, 0, len(m))
+    for k, v := range m {
+        hdrs = append(hdrs, kafka.Header{
+            Key:   k,
+            Value: []byte(v),
+        })
+    }
+    return hdrs
 }
