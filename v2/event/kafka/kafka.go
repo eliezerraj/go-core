@@ -7,7 +7,8 @@ import(
 	"os/signal"
 	"syscall"
 	"time"
-	"math/rand/v2"
+
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 
 	"github.com/aws/aws-msk-iam-sasl-signer-go/signer"
@@ -160,11 +161,14 @@ func NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations,
 								"sasl.password":                kafkaConfigurations.Password,
 								"acks": 						"all", // acks=0  acks=1 acks=all
 								"message.timeout.ms":			5000,
-								"retries":						5,
+								"retries":						10,
 								"retry.backoff.ms":				500,
 								"enable.idempotence":			true,
 								"go.logs.channel.enable": 		true, 
-								"transactional.id":       		fmt.Sprintf("go-core-trx-%v", rand.IntN(1000)),                      
+								"transaction.timeout.ms": 60000, // default is 1 min
+								"request.timeout.ms": 30000,     // must be < transaction.timeout
+								"socket.timeout.ms": 30000,
+								"transactional.id": fmt.Sprintf("go-core-trx-%v", uuid.New().String()),                      
 								}
 
 	producer, err := kafka.NewProducer(config)
