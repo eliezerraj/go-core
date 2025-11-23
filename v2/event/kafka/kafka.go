@@ -7,7 +7,8 @@ import(
 	"os/signal"
 	"syscall"
 	"time"
-	"math/rand/v2"
+
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 
 	"github.com/aws/aws-msk-iam-sasl-signer-go/signer"
@@ -160,11 +161,14 @@ func NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations,
 								"sasl.password":                kafkaConfigurations.Password,
 								"acks": 						"all", // acks=0  acks=1 acks=all
 								"message.timeout.ms":			5000,
-								"retries":						5,
+								"retries":						10,
 								"retry.backoff.ms":				500,
 								"enable.idempotence":			true,
 								"go.logs.channel.enable": 		true, 
-								"transactional.id":       		fmt.Sprintf("go-core-trx-%v", rand.IntN(1000)),                      
+								"transaction.timeout.ms": 60000, // default is 1 min
+								"request.timeout.ms": 30000,     // must be < transaction.timeout
+								"socket.timeout.ms": 30000,
+								"transactional.id": fmt.Sprintf("go-core-trx-%v", uuid.New().String()),                      
 								}
 
 	producer, err := kafka.NewProducer(config)
@@ -184,24 +188,13 @@ func NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations,
 // Above Producer a event
 func (p *ProducerWorker) Producer(event_topic string, 
 									key string,
-									producer_headers *map[string]string,
+									kafkaHeader []kafka.Header,
 									payload []byte) (error){
+
 	p.logger.Debug().
 			Str("func","Producer").Send()
 
 	deliveryChan := make(chan kafka.Event)
-
-	var header []kafka.Header
-
-	if producer_headers != nil {
-		for key, value := range *producer_headers {
-			h := kafka.Header{
-				Key: key,
-				Value: []byte(value), 
-			}
-			header = append(header, h)
-		}
-	}
 
 	err := p.producer.Produce(&kafka.Message {
 												TopicPartition: kafka.TopicPartition{	
@@ -210,9 +203,11 @@ func (p *ProducerWorker) Producer(event_topic string,
 											},
 												Key:    []byte(key),											
 												Value: 	payload, 
-												Headers: header,
+												Headers: kafkaHeader,
 								},deliveryChan)
 	if err != nil {
+		p.logger.Error().
+				 Err(err).Send()
 		return err
 	}
 
@@ -234,7 +229,7 @@ func (p *ProducerWorker) Producer(event_topic string,
 	p.logger.Debug().Msg("Delivered message to topic")
 	p.logger.Debug().Interface("topic            : ", *m.TopicPartition.Topic).Msg("")
 	p.logger.Debug().Interface("key              : ", key ).Msg("")
-	p.logger.Debug().Interface("header           : ", header ).Msg("")
+	p.logger.Printf("kafkaHeader                 : %v\n", kafkaHeader)	
 	p.logger.Debug().Interface("partition        : ", m.TopicPartition.Partition).Msg("")
 	p.logger.Debug().Interface("offset           : ", m.TopicPartition.Offset).Msg("")
 	p.logger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")	
@@ -251,7 +246,7 @@ func (p *ProducerWorker) InitTransactions(ctx context.Context) error{
 	err := p.producer.InitTransactions(ctx);
 	if err != nil {
 		p.logger.Error().
-				Err(err).Send()
+				 Err(err).Send()
 		return err
 	}
 	return nil
@@ -265,7 +260,7 @@ func (p *ProducerWorker) BeginTransaction() error{
 	err := p.producer.BeginTransaction();
 	if err != nil {
 		p.logger.Error().
-				Err(err).Send()
+				 Err(err).Send()
 		return err
 	}
 	return nil
@@ -279,7 +274,7 @@ func (p *ProducerWorker) CommitTransaction(ctx context.Context) error{
 	err := p.producer.CommitTransaction(ctx);
 	if err != nil {
 		p.logger.Error().
-				Err(err).Send()
+				 Err(err).Send()
 		return err
 	}
 	return nil
@@ -292,7 +287,8 @@ func (p *ProducerWorker) AbortTransaction(ctx context.Context) error{
 
 	err := p.producer.AbortTransaction(ctx);
 	if err != nil {
-		p.logger.Error().Err(err).Send()
+		p.logger.Error().
+				 Err(err).Send()
 		return err
 	}
 	return nil
@@ -307,9 +303,10 @@ func (p *ProducerWorker) Close(){
 }
 
 func NewConsumerWorker(kafkaConfigurations *KafkaConfigurations,
-											appLogger *zerolog.Logger) (*ConsumerWorker, error) {
+					   appLogger *zerolog.Logger) (*ConsumerWorker, error) {
+	
 	logger := appLogger.With().
-						Str("component", "go-core.v2.event,kafka").
+						Str("component", "go-core.v2.event.kafka").
 						Logger()
 	logger.Debug().
 			Str("func","NewConsumerWorker").Send()
@@ -355,13 +352,13 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 		close(messages)
 		c.consumer.Close()
 		c.logger.Debug().
-				Msg("Closed consumer waiting please !!!")
+				 Msg("Closed consumer waiting please !!!")
 	}()
 
 	err := c.consumer.SubscribeTopics(event_topic, nil)
 	if err != nil {
 		c.logger.Error().
-				Err(err).Send()
+				 Err(err).Send()
 	}
 
 	run := true
@@ -385,7 +382,7 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 					c.logger.Error().
 							Interface("kafka.PartitionEOF: ",e).Send()
 				case *kafka.Message:
-					c.logger.Print("...................................")
+					c.logger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")		
 
 					if e.Headers != nil {
 						c.logger.Printf("Headers: %v\n", e.Headers)	
@@ -399,7 +396,7 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 					}
 					messages <- msg
 
-					c.logger.Print("...................................")
+					c.logger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")		
 				case kafka.Error:
 					c.logger.Error().
 							Err(e).
