@@ -60,10 +60,11 @@ func (d *HttpService) DoHttp(ctx context.Context,
 																		int, 
 																		error){
 	d.logger.Debug().
-			Str("func","DoHttp").Send()
+			 Str("func","DoHttp").Send()
 
 	d.logger.Debug().
-			Interface("Body", httpClientParameter.Body).Send()
+			 Ctx(ctx).
+			 Interface("Body", httpClientParameter.Body).Send()
 
 	payload := new(bytes.Buffer) 
 	if httpClientParameter.Body != nil{
@@ -76,7 +77,8 @@ func (d *HttpService) DoHttp(ctx context.Context,
 											payload)
 	if err != nil {
 		d.logger.Error().
-				Err(err).Send()
+				 Ctx(ctx).
+				 Err(err).Send()
 		return nil, http.StatusInternalServerError, errors.New(err.Error())
 	}
 
@@ -92,15 +94,18 @@ func (d *HttpService) DoHttp(ctx context.Context,
 	if err != nil {
 		if errors.Is(err, syscall.EPIPE) {
 			d.logger.Error().
-					Err(err).
-					Msg("WARNING: BROKEN PIPE ERROR")
+					 Ctx(ctx).
+					 Err(err).
+					 Msg("WARNING: BROKEN PIPE ERROR")
         } else if errors.Is(err, syscall.ECONNRESET)  {
 			d.logger.Error().
-					Err(err).
-					Msg("CONNECTION RESET BY PIER")
+			         Ctx(ctx).
+					 Err(err).
+					 Msg("CONNECTION RESET BY PIER")
 		} else {
 			d.logger.Error().
-					Err(err).Send()
+			         Ctx(ctx).
+					 Err(err).Send()
 		}
 		return nil, http.StatusInternalServerError, errors.New(err.Error())
 	}
@@ -117,9 +122,15 @@ func (d *HttpService) DoHttp(ctx context.Context,
 		resp.Body.Close()
 	}()
 
-	d.logger.
-		Debug().
-		Int("StatusCode :", resp.StatusCode).Send()
+	result := httpClientParameter.Body
+	err = json.NewDecoder(resp.Body).Decode(&result)
+    if err != nil {
+		d.logger.Error().
+		         Ctx(ctx).
+				 Err(err).Send()
+		return nil, http.StatusInternalServerError, errors.New(err.Error())
+    }
+
 	switch (resp.StatusCode) {
 		case 401:
 			return nil, http.StatusUnauthorized, nil
@@ -130,17 +141,11 @@ func (d *HttpService) DoHttp(ctx context.Context,
 			return nil, http.StatusNotFound, nil
 		case 404:
 			return nil, http.StatusNotFound, nil
+		case 500:
+			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", result.Msg))	
 		default:
 			return nil, http.StatusInternalServerError, nil
 	}
-
-	result := httpClientParameter.Body
-	err = json.NewDecoder(resp.Body).Decode(&result)
-    if err != nil {
-		d.logger.Error().
-				Err(err).Send()
-		return nil, http.StatusInternalServerError, errors.New(err.Error())
-    }
 
 	return result, http.StatusOK, nil
 }

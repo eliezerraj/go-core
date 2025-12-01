@@ -2,6 +2,7 @@ package http
 
 import(
 	"io"
+	"fmt"
 	"io/ioutil"
 	"errors"
 	"net/http"
@@ -29,7 +30,7 @@ type HttpClientParameter struct{
 }
 
 // Above create a http service
-func NewHttpService(appLogger *zerolog.Logger) *HttpService{
+func NewHttpService(appLogger *zerolog.Logger) *HttpService {
 	logger := appLogger.With().
 						Str("component", "go-core.v2.http").
 						Logger()
@@ -60,9 +61,11 @@ func (d *HttpService) DoHttp(ctx context.Context,
 																		int, 
 																		error){
 	d.logger.Debug().
-			Str("func","DoHttp").Send()
+			 Ctx(ctx).
+			 Str("func","DoHttp").Send()
 
 	d.logger.Debug().
+			Ctx(ctx).
 			Interface("Body", httpClientParameter.Body).Send()
 
 	payload := new(bytes.Buffer) 
@@ -76,7 +79,8 @@ func (d *HttpService) DoHttp(ctx context.Context,
 											payload)
 	if err != nil {
 		d.logger.Error().
-				Err(err).Send()
+				 Ctx(ctx).
+				 Err(err).Send()
 		return nil, http.StatusInternalServerError, errors.New(err.Error())
 	}
 
@@ -92,15 +96,18 @@ func (d *HttpService) DoHttp(ctx context.Context,
 	if err != nil {
 		if errors.Is(err, syscall.EPIPE) {
 			d.logger.Error().
-					Err(err).
-					Msg("WARNING: BROKEN PIPE ERROR")
+			         Ctx(ctx).
+					 Err(err).
+					 Msg("WARNING: BROKEN PIPE ERROR")
         } else if errors.Is(err, syscall.ECONNRESET)  {
 			d.logger.Error().
-					Err(err).
-					Msg("CONNECTION RESET BY PIER")
+					 Ctx(ctx).
+					 Err(err).
+					 Msg("CONNECTION RESET BY PIER")
 		} else {
 			d.logger.Error().
-					Err(err).Send()
+			         Ctx(ctx). 
+					 Err(err).Send()
 		}
 		return nil, http.StatusInternalServerError, errors.New(err.Error())
 	}
@@ -108,18 +115,27 @@ func (d *HttpService) DoHttp(ctx context.Context,
 	defer func() {
 		// Close body
 		d.logger.Debug().
-				Msg("Body.Close !!!")
+		         Ctx(ctx).
+				 Msg("Body.Close !!!")
+
 		if _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {
-			d.logger.
-				Error().
-				Err(err).Send()
+			d.logger.Error().
+					 Ctx(ctx).
+					 Err(err).Send()
 		}
 		resp.Body.Close()
 	}()
 
-	d.logger.
-		Debug().
-		Int("StatusCode :", resp.StatusCode).Send()
+	var result map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+    if err != nil {
+		d.logger.Error().
+		         Ctx(ctx).
+				 Err(err).Send()
+		return nil, http.StatusInternalServerError, errors.New(err.Error())
+    }
+
+	// Any error message come from a go-core middleware has a field message, according to the struct APIError 
 	switch (resp.StatusCode) {
 		case 401:
 			return nil, http.StatusUnauthorized, nil
@@ -130,17 +146,11 @@ func (d *HttpService) DoHttp(ctx context.Context,
 			return nil, http.StatusNotFound, nil
 		case 404:
 			return nil, http.StatusNotFound, nil
+		case 500:
+			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", result["message"]))	
 		default:
-			return nil, http.StatusInternalServerError, nil
+			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", result["message"]))
 	}
-
-	result := httpClientParameter.Body
-	err = json.NewDecoder(resp.Body).Decode(&result)
-    if err != nil {
-		d.logger.Error().
-				Err(err).Send()
-		return nil, http.StatusInternalServerError, errors.New(err.Error())
-    }
 
 	return result, http.StatusOK, nil
 }

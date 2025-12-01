@@ -49,7 +49,7 @@ func (t *MiddleWare) WriteJSON(	w http.ResponseWriter,
 func (t *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//t.logger.Debug().
-		//		Msg("................ MiddleWareHandlerHeader. (INICIO) ..........")
+		//    	 Msg("................ MiddleWareHandlerHeader. (INICIO) ..........")
 
 		// --- CORS ---
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -84,7 +84,7 @@ func (t *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 		}
 		
 		//t.logger.Debug().
-		//		Msg("........... MiddleWareHandlerHeader. (FIM) ..........")
+		// 		 Msg("........... MiddleWareHandlerHeader. (FIM) ..........")
 
 		next.ServeHTTP(w, r)
 	})
@@ -92,9 +92,9 @@ func (t *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 
 // ------------------- ERROR --------------------------
 type APIError struct {
-	StatusCode	int  `json:"statusCode"`
+	StatusCode	int    `json:"status_code"`
 	Msg			string `json:"message"`
-	TraceId		string `json:"request-id,omitempty"`
+	TraceId		string `json:"request_id,omitempty"`
 }
 
 func (e *APIError) Error() string {
@@ -126,7 +126,7 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 func (t *MiddleWare) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t.logger.Debug().
-				Msg("................ MiddleWareErrorHandler v2 (INICIO - RESPONSE/ERROR)  ...............")
+				 Msg("................ MiddleWareErrorHandler v2 (INICIO - RESPONSE/ERROR)  ...............")
 		
 		if err := h(w, r); err != nil {
 			if e, ok := err.(*APIError); ok{
@@ -136,6 +136,6 @@ func (t *MiddleWare) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		
 		t.logger.Debug().
-				Msg(".......... MiddleWareErrorHandler v2 (FIM - RESPONSE/ERROR)  ...............")
+				 Msg(".......... MiddleWareErrorHandler v2 (FIM - RESPONSE/ERROR)  ...............")
 	 }
 }

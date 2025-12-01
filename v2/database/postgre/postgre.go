@@ -117,7 +117,6 @@ func (d *DatabasePGServer) NewDatabasePG(ctx context.Context,
 											d.Config(connStr, 
 													&logger,			
 													databaseConfig.DBMaxConnection),
-
 											)
 	if err != nil {
 		logger.Error().
