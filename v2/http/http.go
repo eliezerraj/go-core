@@ -126,7 +126,7 @@ func (d *HttpService) DoHttp(ctx context.Context,
 		resp.Body.Close()
 	}()
 
-	var result map[string]interface{}
+	var result interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
     if err != nil {
 		d.logger.Error().
@@ -134,6 +134,15 @@ func (d *HttpService) DoHttp(ctx context.Context,
 				 Err(err).Send()
 		return nil, http.StatusInternalServerError, errors.New(err.Error())
     }
+
+	// handle response when is a array or a map	
+	var message string
+	switch v := result.(type) {
+	case map[string]interface{}:
+    	message = fmt.Sprintf("%v", v["message"])
+	case []interface{}:
+    	// array handling if needed
+	}
 
 	// Any error message come from a go-core middleware has a field message, according to the struct APIError 
 	switch (resp.StatusCode) {
@@ -147,9 +156,9 @@ func (d *HttpService) DoHttp(ctx context.Context,
 		case 404:
 			return nil, http.StatusNotFound, nil
 		case 500:
-			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", result["message"]))	
+			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", message))	
 		default:
-			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", result["message"]))
+			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", message))
 	}
 
 	return result, http.StatusOK, nil
