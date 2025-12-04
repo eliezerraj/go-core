@@ -43,8 +43,8 @@ type DatabasePGServer struct {
 }
 
 func (d *DatabasePGServer) Config(database_url string, 
-								logger *zerolog.Logger,
-								maxConns ...int ) (*pgxpool.Config) {
+								  logger *zerolog.Logger,
+								   maxConns ...int ) (*pgxpool.Config) {
 	logger.Debug().
 			Str("func","Config").Send()
 
@@ -227,7 +227,7 @@ func (d *DatabasePGServer) Ping() (error){
 	err := d.connPool.Ping(ctx)
 	if err != nil {
 		d.logger.Error().
-			Err(err).Msg("error ping database")
+				 Err(err).Msg("error ping database")
 		return err
 	}	
 	return nil
