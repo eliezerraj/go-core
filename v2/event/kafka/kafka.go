@@ -47,7 +47,11 @@ type Message struct {
 	Payload string
 }
 
-func NewProducerWorkerIam(	ctx context.Context,
+// -------------------------------------------------------------------- 
+// Consumer section
+// --------------------------------------------------------------------
+
+func NewProducerWorkerIam(ctx context.Context,
 							region string,
 							role string,
 							kafkaConfigurations *KafkaConfigurations,
@@ -110,10 +114,13 @@ func NewProducerWorkerIam(	ctx context.Context,
 	}, nil
 }
 
-/*
-func NewProducerWorker(kafkaConfigurations *KafkaConfigurations
-						appLogger *zerolog.Logger) (*ProducerWorker, error) {
-	p.logger.Debug().
+func NewProducerWorker(kafkaConfigurations *KafkaConfigurations,
+					   appLogger *zerolog.Logger) (*ProducerWorker, error) {
+
+	logger := appLogger.With().
+						Str("component", "go-core.v2.event.kafka").
+						Logger()
+	logger.Debug().
 			Str("func","NewProducerWorker").Send()
 
 	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
@@ -133,16 +140,16 @@ func NewProducerWorker(kafkaConfigurations *KafkaConfigurations
 
 	producer, err := kafka.NewProducer(config)
 	if err != nil {
-		p.logger.Error().
+		logger.Error().
 				Err(err).Send()
 		return nil, err
 	}
-	
-	return &ProducerWorker{ kafkaConfigurations : kafkaConfigurations,
-							producer : producer,
+	return &ProducerWorker{ 
+		kafkaConfigurations : kafkaConfigurations,
+		producer : producer,
+		logger: &logger,
 	}, nil
 }
-*/
 
 func NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations,
 						appLogger *zerolog.Logger) (*ProducerWorker, error) {
@@ -187,9 +194,9 @@ func NewProducerWorkerTX(kafkaConfigurations *KafkaConfigurations,
 
 // Above Producer a event
 func (p *ProducerWorker) Producer(event_topic string, 
-									key string,
-									kafkaHeader []kafka.Header,
-									payload []byte) (error){
+								  key string,
+								  kafkaHeader []kafka.Header,
+								  payload []byte) (error){
 
 	p.logger.Debug().
 			Str("func","Producer").Send()
@@ -294,6 +301,9 @@ func (p *ProducerWorker) AbortTransaction(ctx context.Context) error{
 	return nil
 }
 
+// -------------------------------------------------------------------- 
+// Consumer section
+// --------------------------------------------------------------------
 // Above Producer abort transaction
 func (p *ProducerWorker) Close(){
 	p.logger.Debug().
