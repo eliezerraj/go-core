@@ -31,8 +31,8 @@ func TestGoCore_Dynamo(t *testing.T){
 	var awsRegion	= "us-east-2"
 
 	dynamoDB, err := NewDatabaseDynamo(context.Background(),
-								  awsRegion,
-								  &logger)
+										awsRegion,
+										&logger)
 	if err != nil {
 		t.Errorf("failed QueryInput : %s", err)
 	}
