@@ -18,7 +18,7 @@ type DatabaseDynamoDB struct {
 
 func NewDatabaseDynamo( ctx context.Context,
 						awsRegion string,
-						appLogger *zerolog.Logger,) (*DatabaseDynamoDB, error) {
+						appLogger *zerolog.Logger) (*DatabaseDynamoDB, error) {
 	logger := appLogger.With().
 						Str("component", "go-core.v2.aws.dynamoDB").
 						Logger()
