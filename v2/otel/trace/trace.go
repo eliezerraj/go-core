@@ -15,8 +15,6 @@ import(
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/sdk/resource"
-
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 // Struct for tracer information
@@ -152,56 +150,4 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 	)
 
 	return ctxSpan, span
-}
-
-// ----------------------------------------------
-// Helper kafka header OTEL
-// ----------------------------------------------
-
-type KafkaHeaderCarrier struct {
-	Headers *[]kafka.Header
-}
-
-func (c KafkaHeaderCarrier) Get(key string) string {
-	for _, h := range *c.Headers {
-		if h.Key == key {
-			return string(h.Value)
-		}
-	}
-	return ""
-}
-
-func (c KafkaHeaderCarrier) Set(key string, value string) {
-	// remove existing key
-	newHeaders := make([]kafka.Header, 0)
-	for _, h := range *c.Headers {
-		if h.Key != key {
-			newHeaders = append(newHeaders, h)
-		}
-	}
-	// append new key
-	newHeaders = append(newHeaders, kafka.Header{
-		Key:   key,
-		Value: []byte(value),
-	})
-	*c.Headers = newHeaders
-}
-
-func (c KafkaHeaderCarrier) Keys() []string {
-	keys := make([]string, 0, len(*c.Headers))
-	for _, h := range *c.Headers {
-		keys = append(keys, h.Key)
-	}
-	return keys
-}
-
-func (c KafkaHeaderCarrier) MapToKafkaHeaders(m map[string]string) []kafka.Header {
-    hdrs := make([]kafka.Header, 0, len(m))
-    for k, v := range m {
-        hdrs = append(hdrs, kafka.Header{
-            Key:   k,
-            Value: []byte(v),
-        })
-    }
-    return hdrs
 }
