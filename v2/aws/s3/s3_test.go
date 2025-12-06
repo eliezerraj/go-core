@@ -5,6 +5,8 @@ import (
 	"context"
 	"testing"
 	"github.com/rs/zerolog"
+
+	"github.com/aws/aws-sdk-go-v2/config"
 )
 
 var logger = zerolog.New(os.Stdout).
@@ -14,10 +16,12 @@ var logger = zerolog.New(os.Stdout).
 
 func TestCore_BucketS3(t *testing.T){
 
-	var awsRegion	= "us-east-2"
+	awsCfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion("us-east-2"))
+	if err != nil {
+		t.Errorf("failed to get aws_config : %s", err)
+	}
 
-	workerBucketS3, err := NewAwsBucketS3(context.Background(),
-											awsRegion,
+	workerBucketS3, err := NewAwsBucketS3(&awsCfg,
 											&logger)
 	if err != nil {
 		t.Errorf("failed QueryInput : %s", err)
