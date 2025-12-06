@@ -4,7 +4,7 @@ import(
 	"context"
 	"github.com/rs/zerolog"
 
-	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -16,23 +16,16 @@ type DatabaseDynamoDB struct {
 	logger 		*zerolog.Logger
 }
 
-func NewDatabaseDynamo( ctx context.Context,
-						awsRegion string,
+func NewDatabaseDynamo( awsConfig *aws.Config,
 						appLogger *zerolog.Logger) (*DatabaseDynamoDB, error) {
+							
 	logger := appLogger.With().
 						Str("component", "go-core.v2.aws.dynamoDB").
 						Logger()
 	logger.Debug().
 			Str("func","NewDatabaseDynamo").Send()
 
-	configAWS, err := config.LoadDefaultConfig(ctx, config.WithRegion(awsRegion))
-	if err != nil {
-		logger.Error().
-			   Err(err).Send()
-		return nil, err
-	}
-
-	client := dynamodb.NewFromConfig(configAWS)
+	client := dynamodb.NewFromConfig(*awsConfig)
 
 	return &DatabaseDynamoDB {
 		Client: client,

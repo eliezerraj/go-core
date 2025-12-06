@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -18,8 +17,7 @@ type AwsBucketS3 struct {
 }
 
 // About create a new client
-func NewAwsBucketS3(ctx context.Context,
-					awsRegion string,
+func NewAwsBucketS3(awsConfig *aws.Config,
 					appLogger *zerolog.Logger) (*AwsBucketS3, error) {
 
 	logger := appLogger.With().
@@ -28,14 +26,7 @@ func NewAwsBucketS3(ctx context.Context,
 	logger.Debug().
 			Str("func","NewAwsBucketS3").Send()
 
-	configAWS, err := config.LoadDefaultConfig(ctx, config.WithRegion(awsRegion))
-	if err != nil {
-		logger.Error().
-			   Err(err).Send()
-		return nil, err
-	}
-	
-	client := s3.NewFromConfig(configAWS)
+	client := s3.NewFromConfig(*awsConfig)
 
 	return &AwsBucketS3{
 		Client: client,

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"github.com/rs/zerolog"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 )
 
@@ -28,10 +29,12 @@ var logger = zerolog.New(os.Stdout).
 
 func TestGoCore_Dynamo(t *testing.T){
 
-	var awsRegion	= "us-east-2"
+	awsCfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion("us-east-2"))
+	if err != nil {
+		t.Errorf("failed to get aws_config : %s", err)
+	}
 
-	dynamoDB, err := NewDatabaseDynamo(context.Background(),
-										awsRegion,
+	dynamoDB, err := NewDatabaseDynamo(&awsCfg,
 										&logger)
 	if err != nil {
 		t.Errorf("failed QueryInput : %s", err)
