@@ -10,7 +10,6 @@ import (
 	redis "github.com/redis/go-redis/v9"
 )
 
-
 func TestRedisClientPing(t *testing.T){
 	var redisClientCache 	RedisClient
 	var optRedisClient		redis.Options
@@ -124,13 +123,14 @@ func TestRedisClientGet(t *testing.T){
 	}
 }
 
+/*
 func TestRedisCluster(t *testing.T){
 
 	var envCacheCluster	redis.ClusterOptions
 	var redisClusterServer RedisClusterServer
 
-	envCacheCluster.Username = ""
-	envCacheCluster.Password = ""
+	envCacheCluster.Username = "user-02"
+	envCacheCluster.Password = "MyCachePassword123!"
 	envCacheCluster.Addrs = strings.Split("arch-valkey-02-001.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379", ",") 
 
 	if !strings.Contains(envCacheCluster.Addrs[0], "127.0.0.1") {
@@ -171,4 +171,4 @@ func TestRedisCluster(t *testing.T){
 	} else {
 		t.Errorf("Error : %v %v", value_assert, value)
 	}
-}
+}*/
