@@ -135,7 +135,7 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 								 spanName string) (context.Context, trace.Span) {
 	
 	// get tracer id
-	trace_id := fmt.Sprintf("%v",ctx.Value("trace-request-id"))
+	trace_id := fmt.Sprintf("%v",ctx.Value("request-id"))
 	if trace_id == "" {	
 		trace_id = "not-informed"
 	}
@@ -145,7 +145,7 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 								  spanName,
 								  trace.WithSpanKind(trace.SpanKindConsumer),
 								  trace.WithAttributes(
-									 attribute.String("trace-request-id", trace_id),
+									 attribute.String("request-id", trace_id),
 								  ),
 	)
 
