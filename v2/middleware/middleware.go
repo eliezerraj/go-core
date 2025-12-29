@@ -74,12 +74,12 @@ func (t *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 
 		// --- Set request ID in context if exists ---
 		if vals := r.Header.Values("X-Request-Id"); len(vals) > 0 {
-			ctx := context.WithValue(r.Context(), "trace-request-id", vals[0])
+			ctx := context.WithValue(r.Context(), "request-id", vals[0])
 			r = r.WithContext(ctx)
 		} else {
 			//t.logger.Debug().
-			//		Msg("creating new trace-request-id from uuid")
-			ctx := context.WithValue(r.Context(), "trace-request-id", uuid.New().String())
+			//		Msg("creating new request-id from uuid")
+			ctx := context.WithValue(r.Context(), "request-id", uuid.New().String())
 			r = r.WithContext(ctx)
 		}
 		

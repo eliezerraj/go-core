@@ -1,14 +1,13 @@
 # go-core
 
-version v1.0.56
+   A reusable Go module with commonly used tools.
 
-A reusable Go module with commonly used tools.
+   The current version V2
 
 ## Installation
 
-go get -u github.com/eliezerraj/go-core
+  go get -u github.com/eliezerraj/go-core
 
 ## Test
 
-go test -v --run TestRedisClient
-
+  go test -v --run TestRedisClient
