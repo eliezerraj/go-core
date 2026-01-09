@@ -114,6 +114,40 @@ func NewProducerWorkerIam(ctx context.Context,
 	}, nil
 }
 
+func NewProducerWorkerNoAuth(kafkaConfigurations *KafkaConfigurations,
+					   		 appLogger *zerolog.Logger) (*ProducerWorker, error) {
+
+	logger := appLogger.With().
+						Str("component", "go-core.v2.event.kafka").
+						Logger()
+	logger.Debug().
+			Str("func","NewProducerWorker").Send()
+
+	kafkaBrokerUrls := 	kafkaConfigurations.Brokers1 + "," + kafkaConfigurations.Brokers2 + "," + kafkaConfigurations.Brokers3
+	
+	config := &kafka.ConfigMap{	"bootstrap.servers":            kafkaBrokerUrls,
+								"security.protocol":            kafkaConfigurations.Protocol, //"SASL_SSL",
+								"acks": 						"all", // acks=0  acks=1 acks=all
+								"message.timeout.ms":			5000,
+								"retries":						5,
+								"retry.backoff.ms":				500,
+								"enable.idempotence":			true,
+								"go.logs.channel.enable": 		true,                    
+								}
+
+	producer, err := kafka.NewProducer(config)
+	if err != nil {
+		logger.Error().
+				Err(err).Send()
+		return nil, err
+	}
+	return &ProducerWorker{ 
+		kafkaConfigurations : kafkaConfigurations,
+		producer : producer,
+		logger: &logger,
+	}, nil
+}
+
 func NewProducerWorker(kafkaConfigurations *KafkaConfigurations,
 					   appLogger *zerolog.Logger) (*ProducerWorker, error) {
 
