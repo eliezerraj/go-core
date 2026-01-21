@@ -132,7 +132,9 @@ func buildResources(ctx context.Context,
 
 // About create a span and return the context
 func (t *TracerProvider) SpanCtx(ctx context.Context, 
-								 spanName string) (context.Context, trace.Span) {
+								 spanName string,
+								 spanKind trace.SpanKind,
+								 ) (context.Context, trace.Span) {
 	
 	// get tracer id
 	trace_id := fmt.Sprintf("%v",ctx.Value("request-id"))
@@ -141,13 +143,13 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 	}
 	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
 	
-	ctxSpan, span := tracer.Start(ctx,
+	ctx, span := tracer.Start(ctx,
 								  spanName,
-								  trace.WithSpanKind(trace.SpanKindConsumer),
+								  trace.WithSpanKind(spanKind),
 								  trace.WithAttributes(
 									 attribute.String("request-id", trace_id),
 								  ),
 	)
 
-	return ctxSpan, span
+	return ctx, span
 }
