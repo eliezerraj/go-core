@@ -113,7 +113,7 @@ func NewTracerProvider(	ctx context.Context,
 		Tracer: tracer,
 	}
 
-	logger.Info().
+	logger.Debug().
 			Str("func","NewTracerProvider").
 			Msg("OTEL Tracer Provider created successfully")
 	
