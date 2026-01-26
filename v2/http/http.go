@@ -151,6 +151,7 @@ func (d *HttpService) DoHttp(ctx context.Context,
 		case 403:
 			return nil, http.StatusForbidden, nil
 		case 200:
+		case 201:
 		case 400:
 			return nil, http.StatusNotFound, nil
 		case 404:

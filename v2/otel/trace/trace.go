@@ -1,7 +1,6 @@
 package trace
 
 import(
-	"fmt"
 	"context"
 	"time"
 	"github.com/rs/zerolog"
@@ -11,10 +10,11 @@ import(
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/sdk/resource"
+	
+	go_core_middleware "github.com/eliezerraj/go-core/v2/middleware"
 )
 
 // Struct for tracer information
@@ -42,13 +42,16 @@ type EnvTrace struct {
 
 // Tracer provider object
 type TracerProvider struct {
+	TracerProvider *sdktrace.TracerProvider
+	Tracer			trace.Tracer
 }
 
 // About create a http tracer provider
-func (t *TracerProvider) NewTracerProvider(	ctx context.Context, 
-											envTrace 	EnvTrace, 
-											infoTrace 	InfoTrace,
-											appLogger 	*zerolog.Logger) *sdktrace.TracerProvider {
+func NewTracerProvider(	ctx context.Context, 
+						envTrace 	EnvTrace, 
+						infoTrace 	InfoTrace,
+						appLogger 	*zerolog.Logger) *TracerProvider {
+
 	logger := appLogger.With().
 						Str("component", "go-core.v2.otel.trace").
 						Logger()
@@ -102,7 +105,19 @@ func (t *TracerProvider) NewTracerProvider(	ctx context.Context,
 		sdktrace.WithResource(resources),
 		sdktrace.WithBatcher(stdout_export),
 	)
-	return tp
+	
+	tracer := tp.Tracer("go.opentelemetry.io/otel")
+
+	tracerProvider := &TracerProvider{
+		TracerProvider: tp,
+		Tracer: tracer,
+	}
+
+	logger.Debug().
+			Str("func","NewTracerProvider").
+			Msg("OTEL Tracer Provider created successfully")
+	
+			return tracerProvider
 }
 
 // About set attributes
@@ -124,6 +139,7 @@ func attributes(infoTrace InfoTrace,
 func buildResources(ctx context.Context, 
 					infoTrace InfoTrace, 
 					envTrace EnvTrace) (*resource.Resource, error) {
+
 	return resource.New(
 		ctx,
 		resource.WithAttributes(attributes(infoTrace, envTrace)...),
@@ -136,19 +152,18 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 								 spanKind trace.SpanKind,
 								 ) (context.Context, trace.Span) {
 	
-	// get tracer id
-	trace_id := fmt.Sprintf("%v",ctx.Value("request-id"))
-	if trace_id == "" {	
-		trace_id = "not-informed"
+	// Get request ID from context using middleware function
+	requestID := go_core_middleware.GetRequestID(ctx)
+	if requestID == "" {
+		requestID = "not-informed"
 	}
-	tracer := otel.GetTracerProvider().Tracer("go.opentelemetry.io/otel")
 	
-	ctx, span := tracer.Start(ctx,
-								  spanName,
-								  trace.WithSpanKind(spanKind),
-								  trace.WithAttributes(
-									 attribute.String("request-id", trace_id),
-								  ),
+	ctx, span := t.Tracer.Start(ctx,
+							  spanName,
+							  trace.WithSpanKind(spanKind),
+							  trace.WithAttributes(
+								attribute.String("request-id", requestID),
+							),
 	)
 
 	return ctx, span
