@@ -12,7 +12,7 @@ import (
 
 // contextKey is a type for context keys to avoid collisions
 type contextKey string
-const requestIDKey contextKey = "request-id"
+const RequestIDKey contextKey = "request-id"
 
 // CORSConfig holds CORS configuration
 type CORSConfig struct {
@@ -57,7 +57,7 @@ func NewMiddleWareWithCORS(appLogger *zerolog.Logger, cors *CORSConfig) *MiddleW
 // GetRequestID retrieves the request ID from context
 // Returns empty string if not found
 func GetRequestID(ctx context.Context) string {
-	id, ok := ctx.Value(requestIDKey).(string)
+	id, ok := ctx.Value(RequestIDKey).(string)
 	if !ok {
 		// Request ID not found in context
 		return ""
@@ -123,7 +123,7 @@ func (m *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 
 		// --- Set request ID in context ---
 		requestID := getOrGenerateRequestID(r)
-		ctx := context.WithValue(r.Context(), requestIDKey, requestID)
+		ctx := context.WithValue(r.Context(), RequestIDKey, requestID)
 		r = r.WithContext(ctx)
 
 		m.logger.Debug().

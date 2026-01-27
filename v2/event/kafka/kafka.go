@@ -45,6 +45,7 @@ type KafkaConfigurations struct {
 type Message struct {
 	Header 	*map[string]string
 	Payload string
+	Raw     *kafka.Message
 }
 
 // -------------------------------------------------------------------- 
@@ -433,11 +434,15 @@ func (c *ConsumerWorker) Consumer(event_topic []string, messages chan <- Message
 					}
 					c.logger.Print("Value : ", string(e.Value))
 
+					c.logger.Debug().
+						Interface("Raw: ", e).Send()
+
 					headers := extractHeaders(e.Headers)
-					msg := Message{
-							Header: &headers,
-							Payload: string(e.Value),
-					}
+					    msg := Message{
+						    Header: &headers,
+						    Payload: string(e.Value),
+						    Raw: e,
+					    }
 					messages <- msg
 
 					c.logger.Debug().Msg("+ + + + + + + + + + + + + + + + + + + + + + + +")		
@@ -471,4 +476,17 @@ func (c *ConsumerWorker) Commit(){
 			Str("func","Commit").Send()
 	
 	c.consumer.Commit()
+}
+
+// CommitMessage commits the provided kafka message offset
+func (c *ConsumerWorker) CommitMessage(m *kafka.Message) error {
+	c.logger.Debug().
+		Str("func","CommitMessage").Send()
+
+	_, err := c.consumer.CommitMessage(m)
+	if err != nil {
+		c.logger.Error().Err(err).Msg("CommitMessage failed")
+		return err
+	}
+	return nil
 }
