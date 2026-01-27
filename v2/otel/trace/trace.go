@@ -1,8 +1,8 @@
 package trace
 
 import(
-	"context"
 	"time"
+	"context"
 	"github.com/rs/zerolog"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -151,19 +151,20 @@ func (t *TracerProvider) SpanCtx(ctx context.Context,
 								 spanName string,
 								 spanKind trace.SpanKind,
 								 ) (context.Context, trace.Span) {
-	
+
+
 	// Get request ID from context using middleware function
 	requestID := go_core_middleware.GetRequestID(ctx)
 	if requestID == "" {
 		requestID = "not-informed"
 	}
-	
+
 	ctx, span := t.Tracer.Start(ctx,
 							  spanName,
 							  trace.WithSpanKind(spanKind),
-							  trace.WithAttributes(
-								attribute.String("request-id", requestID),
-							),
+															trace.WithAttributes(
+																attribute.String(string(go_core_middleware.RequestIDKey), requestID),
+														),
 	)
 
 	return ctx, span
