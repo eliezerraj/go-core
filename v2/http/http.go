@@ -147,19 +147,21 @@ func (d *HttpService) DoHttp(ctx context.Context,
 	// Any error message come from a go-core middleware has a field message, according to the struct APIError 
 	switch (resp.StatusCode) {
 		case 401:
-			return nil, http.StatusUnauthorized, nil
+			return result, http.StatusUnauthorized, nil
 		case 403:
-			return nil, http.StatusForbidden, nil
+			return result, http.StatusForbidden, nil
 		case 200:
+			return result, http.StatusOK, nil
 		case 201:
+			return result, http.StatusCreated, nil
 		case 400:
-			return nil, http.StatusNotFound, nil
+			return result, http.StatusBadRequest, nil
 		case 404:
-			return nil, http.StatusNotFound, nil
+			return result, http.StatusNotFound, nil
 		case 500:
-			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", message))	
+			return result, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", message))	
 		default:
-			return nil, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", message))
+			return result, http.StatusInternalServerError, errors.New(fmt.Sprintf("%d", message))
 	}
 
 	return result, http.StatusOK, nil
