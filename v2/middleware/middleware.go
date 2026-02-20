@@ -26,6 +26,13 @@ type MiddleWare struct {
 	corsConfig *CORSConfig
 }
 
+// APIError represents API error response
+type APIError struct {
+	StatusCode int    `json:"status_code"`
+	Msg        string `json:"message"`
+	RequestID  string `json:"request_id,omitempty"`
+}
+
 // NewMiddleWare creates a new middleware instance
 func NewMiddleWare(appLogger *zerolog.Logger) *MiddleWare {
 	logger := appLogger.With().
@@ -156,19 +163,12 @@ func joinStrings(strs []string) string {
 	return result
 }
 
-// APIError represents API error response
-type APIError struct {
-	StatusCode int    `json:"status_code"`
-	Msg        string `json:"message"`
-	TraceID    string `json:"request_id,omitempty"`
-}
-
 func (e *APIError) Error() string {
 	return e.Msg
 }
 
 // NewAPIError creates a new API error response
-func NewAPIError(err error, traceID string, status ...int) *APIError {
+func NewAPIError(err error, requestID string, status ...int) *APIError {
 	// Set default status code
 	statusCode := http.StatusBadRequest
 	if len(status) > 0 {
@@ -178,7 +178,7 @@ func NewAPIError(err error, traceID string, status ...int) *APIError {
 	return &APIError{
 		StatusCode: statusCode,
 		Msg:        err.Error(),
-		TraceID:    traceID,
+		RequestID:  requestID,
 	}
 }
 
