@@ -22,7 +22,7 @@ type InfoTrace struct {
 	Name			string `json:"service_name,omitempty"`
 	Version			string `json:"service_version,omitempty"`
 	ServiceType		string `json:"service_type,omitempty"`
-	Env				string `json:"enviroment,omitempty"`
+	Env				string `json:"environment,omitempty"`
 	Account			string `json:"account,omitempty"`
 }
 
@@ -57,7 +57,7 @@ func NewTracerProvider(	ctx context.Context,
 						Logger()
 
 	logger.Debug().
-			Str("func","NewTracerProvider").Send()
+		Str("func","NewTracerProvider").Send()
 
 	var stdout_export sdktrace.SpanExporter
 	var err error
@@ -66,8 +66,8 @@ func NewTracerProvider(	ctx context.Context,
 		stdout_export, err = stdouttrace.New()
 		if err != nil {
 			logger.Warn().
-					Err(nil).
-					Msg("Fail create STDOUT trace exporter WARNING !!!")
+				Err(err).
+				Msg("Fail create STDOUT trace exporter WARNING !!!")
 		}
 	}
 
@@ -87,37 +87,32 @@ func NewTracerProvider(	ctx context.Context,
 									),)
 	if err != nil {
 		logger.Error().
-				Err(err).
-				Msg("Erro create OTEL trace exporter")
+			Err(err).
+			Msg("Erro create OTEL trace exporter")
 	}
 
 	resources, err := buildResources(ctx, infoTrace, envTrace)
 	if err != nil {
 		logger.Error().
-				Err(err).
-				Msg("Erro to build OTEL resource")
+			Err(err).
+			Msg("Erro to build OTEL resource")
 	}
 
-	tp := sdktrace.NewTracerProvider(
+	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
-		sdktrace.WithSyncer(exporter),
 		sdktrace.WithResource(resources),
 		sdktrace.WithBatcher(stdout_export),
 	)
 	
-	tracer := tp.Tracer("go.opentelemetry.io/otel")
-
-	tracerProvider := &TracerProvider{
-		TracerProvider: tp,
-		Tracer: tracer,
-	}
-
 	logger.Debug().
-			Str("func","NewTracerProvider").
-			Msg("OTEL Tracer Provider created successfully")
+		Str("func","NewTracerProvider").
+		Msg("OTEL Tracer Provider created successfully")
 	
-			return tracerProvider
+	return &TracerProvider{
+		TracerProvider: tracerProvider,
+		Tracer: tracerProvider.Tracer("github.com/eliezerraj/go-core/v2/otel/trace"),
+	}
 }
 
 // About set attributes

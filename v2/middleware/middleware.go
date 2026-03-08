@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"strings"
 	"context"
 	"fmt"
 	"net/http"
@@ -107,7 +108,11 @@ func (m *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// --- CORS Headers ---
 		cors := m.corsConfig
-		w.Header().Set("Access-Control-Allow-Origin", cors.AllowedOrigins[0])
+		allowOrigin := "*"
+		if len(cors.AllowedOrigins) > 0 {
+			allowOrigin = cors.AllowedOrigins[0]
+		}
+		w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", joinStrings(cors.AllowedMethods))
 		w.Header().Set("Access-Control-Allow-Headers", joinStrings(cors.AllowedHeaders))
 
@@ -145,22 +150,15 @@ func (m *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 
 // getOrGenerateRequestID retrieves request ID from header or generates new one
 func getOrGenerateRequestID(r *http.Request) string {
-	if vals := r.Header.Values("X-Request-Id"); len(vals) > 0 {
-		return vals[0]
-	}
+    if id := r.Header.Get("X-Request-Id"); id != "" {
+        return id
+    }
 	return uuid.New().String()
 }
 
 // joinStrings joins string slice with comma separator
 func joinStrings(strs []string) string {
-	result := ""
-	for i, s := range strs {
-		if i > 0 {
-			result += ", "
-		}
-		result += s
-	}
-	return result
+    return strings.Join(strs, ", ")
 }
 
 func (e *APIError) Error() string {

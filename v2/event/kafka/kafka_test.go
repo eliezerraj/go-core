@@ -12,6 +12,10 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+//Brokers1: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9092",
+//Brokers2: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9092",		 
+//Brokers3: "b-3.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9092",	
+
 type Payload struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
@@ -38,9 +42,9 @@ var kafkaConfigurationsIAM = KafkaConfigurations{
 var kafkaConfigurationsPlain = KafkaConfigurations{
 		Protocol: "PLAINTEXT",
 		Clientid: "GO-CORE-TEST",
-		Brokers1: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9092",
-		Brokers2: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9092",		 
-		Brokers3: "b-3.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9092",	
+		Brokers1: "pi-home-01:9092",
+		Brokers2: "pi-home-02:9092",		 
+		Brokers3: "pi-home-03:9092",	
 		Groupid:"GROUP-CORE-TEST",			 
 		Partition: 3,      
 		ReplicationFactor: 1,
@@ -50,12 +54,27 @@ var kafkaConfigurationsPlain = KafkaConfigurations{
 var kafkaConfigurationsSSL = KafkaConfigurations{
 		Username: "admin",
 		Password: "admin",
-		Protocol: "SASL_SSL",
+		Protocol: "SASL_PLAINTEXT",
 		Mechanisms: "SCRAM-SHA-512",
 		Clientid: "GO-CORE-TEST",
-		Brokers1: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",
-		Brokers2: "b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",		 
-		Brokers3: "b-3.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096",			 
+		Brokers1: "pi-home-01:9092",
+		Brokers2: "pi-home-02:9092",		 
+		Brokers3: "pi-home-03:9092",		 
+		Groupid:"GROUP-CORE-TEST",			 
+		Partition: 3,      
+		ReplicationFactor: 1,
+		RequiredAcks:  1,    
+}
+
+var kafkaConfigurationsLocal= KafkaConfigurations{
+		Username: "admin",
+		Password: "admin",
+		Protocol: "SASL_PLAINTEXT",
+		Mechanisms: "PLAIN",
+		Clientid: "GO-CORE-TEST",
+		Brokers1: "pi-home-01:9092",
+		Brokers2: "pi-home-02:9092",		 
+		Brokers3: "pi-home-03:9092",		 
 		Groupid:"GROUP-CORE-TEST",			 
 		Partition: 3,      
 		ReplicationFactor: 1,
@@ -177,10 +196,10 @@ func TestGoCore_Kafka_ProducerNoAuth(t *testing.T){
 func TestGoCore_Kafka_Producer(t *testing.T){
 
 	// Print kafka configurations pretty	
-	s, _ := json.MarshalIndent(kafkaConfigurationsSSL, "", "\t")
+	s, _ := json.MarshalIndent(kafkaConfigurationsLocal, "", "\t")
 	fmt.Println(string(s))
 
-	producer_01, err := NewProducerWorker(&kafkaConfigurationsSSL, 
+	producer_01, err := NewProducerWorker(&kafkaConfigurationsLocal, 
 										  &logger)
 	if err != nil {
 		t.Errorf("failed to create producer : %s", err)
@@ -300,19 +319,19 @@ func TestGoCore_Kafka_ProducerTX(t *testing.T){
 func TestGoCore_Kafka_Consumer(t *testing.T){
 
 	// Print kafka configurations pretty	
-	s, _ := json.MarshalIndent(kafkaConfigurationsSSL, "", "\t")
+	s, _ := json.MarshalIndent(kafkaConfigurationsLocal, "", "\t")
 	fmt.Println(string(s))
 
-	consumer_01, err := NewConsumerWorker(&kafkaConfigurationsSSL,
+	consumer_01, err := NewConsumerWorker(&kafkaConfigurationsLocal,
 										  &logger)
 	if err != nil {
 		t.Errorf("failed to create consumer : %s", err)
 	}
 
-	//var EVENT = "EVENT.TEST" 
-	var EVENT_CDC = "postgres-cdc.public.inventory"
+	var EVENT = "EVENT.TEST" 
+	//var EVENT_CDC = "postgres-cdc.public.inventory"
 
-	event_topics := []string{EVENT_CDC}
+	event_topics := []string{EVENT}
 
 	message := make(chan Message)
 
