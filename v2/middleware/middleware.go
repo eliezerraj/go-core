@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"io"
 	"strings"
 	"context"
 	"fmt"
 	"net/http"
+	"compress/gzip"
 	"encoding/json"
 
 	"github.com/rs/zerolog"
@@ -37,8 +39,8 @@ type APIError struct {
 // NewMiddleWare creates a new middleware instance
 func NewMiddleWare(appLogger *zerolog.Logger) *MiddleWare {
 	logger := appLogger.With().
-						Str("component", "go-core.v2.middleware").
-						Logger()
+				Str("component", "go-core.v2.middleware").
+				Logger()
 
 	return &MiddleWare{
 		logger: logger,
@@ -53,8 +55,8 @@ func NewMiddleWare(appLogger *zerolog.Logger) *MiddleWare {
 // NewMiddleWareWithCORS creates middleware with custom CORS configuration
 func NewMiddleWareWithCORS(appLogger *zerolog.Logger, cors *CORSConfig) *MiddleWare {
 	logger := appLogger.With().
-						Str("component", "go-core.v2.middleware").
-						Logger()
+				Str("component", "go-core.v2.middleware").
+				Logger()
 
 	return &MiddleWare{
 		logger: logger,
@@ -235,4 +237,55 @@ func (m *MiddleWare) MiddleWareRecovery(next http.Handler) http.Handler {
 		}()
 		next.ServeHTTP(w, r)
 	})
+}
+
+// ForceGzipMiddleware forces gzip compression for all responses
+func (m *MiddleWare) ForceGzipMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 1. Force the header regardless of the request
+
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Type", "application/json")
+
+		// 2. Initialize gzip writer immediately
+		gz := gzip.NewWriter(w)
+		
+		// Ensure we close the writer to flush the buffer to the client
+		defer gz.Close()
+
+		// 3. Intercept the response
+		gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		next.ServeHTTP(gzw, r)
+	})
+}
+
+// GzipMiddleware applies gzip compression only if the client supports it
+// You can apply this middleware only to the specific routes you want to compress in your router.
+func (m *MiddleWare) GzipMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if the client accepts gzip encoding
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			// If not, serve normally without compression
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Type", "application/json") 
+
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		next.ServeHTTP(gzw, r)
+	})
+}
+
+type gzipResponseWriter struct {
+    io.Writer
+    http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+    return w.Writer.Write(b)
 }
