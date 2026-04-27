@@ -239,26 +239,6 @@ func (m *MiddleWare) MiddleWareRecovery(next http.Handler) http.Handler {
 	})
 }
 
-// ForceGzipMiddleware forces gzip compression for all responses
-func (m *MiddleWare) ForceGzipMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 1. Force the header regardless of the request
-
-		w.Header().Set("Content-Encoding", "gzip")
-		w.Header().Set("Content-Type", "application/json")
-
-		// 2. Initialize gzip writer immediately
-		gz := gzip.NewWriter(w)
-		
-		// Ensure we close the writer to flush the buffer to the client
-		defer gz.Close()
-
-		// 3. Intercept the response
-		gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
-		next.ServeHTTP(gzw, r)
-	})
-}
-
 // GzipMiddleware applies gzip compression only if the client supports it
 // You can apply this middleware only to the specific routes you want to compress in your router.
 func (m *MiddleWare) GzipMiddleware(next http.Handler) http.Handler {
