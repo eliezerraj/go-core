@@ -8,12 +8,13 @@ import(
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"	
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/sdk/resource"
-	
+
 	go_core_middleware "github.com/eliezerraj/go-core/v2/middleware"
 )
 
@@ -103,6 +104,7 @@ func NewTracerProvider(	ctx context.Context,
 		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
 		sdktrace.WithResource(resources),
 		sdktrace.WithBatcher(stdout_export),
+		sdktrace.WithIDGenerator(xray.NewIDGenerator()),
 	)
 	
 	logger.Debug().
