@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var logger = zerolog.New(os.Stdout).
@@ -16,9 +17,8 @@ var logger = zerolog.New(os.Stdout).
 					Str("package", "http").
 					Logger()
 
+// go test -v -run "TestCore_Observability"
 func TestCore_Observability(t *testing.T){
-	var tracerProvider TracerProvider
-
 	ctx, cancel := context.WithTimeout(	context.Background(), 
 										time.Duration( 30 ) * time.Second)
 	defer cancel()
@@ -26,10 +26,10 @@ func TestCore_Observability(t *testing.T){
 	infoTrace := InfoTrace{}
 	envTrace := EnvTrace{}
 
-	tracerProvider.NewTracerProvider(ctx, 
-									envTrace, 
-									infoTrace,
-									&logger)
-									
-	tracerProvider.SpanCtx(ctx,"my-span-test")
+	test_tracerProvider := NewTracerProvider(	ctx, 
+											envTrace, 
+											infoTrace,
+											&logger)
+											
+	test_tracerProvider.SpanCtx(ctx,"my-span-test",trace.SpanKindInternal)
 }
