@@ -10,8 +10,8 @@ import (
 	redis "github.com/redis/go-redis/v9"
 )
 
-var username = "cache-admin"
-var password = "AdminPassword123!"
+var username = "user-01"
+var password = "MyPassword-user-01"
 
 //var username = "cache-user-01"
 //var password = "CacheUser01Password123!"
@@ -19,10 +19,10 @@ var password = "AdminPassword123!"
 //var username = "cache-user-02"
 //var password = "CacheUser02Password123!"
 
-var addr = "master.pier-valkey-1.vax7ar.use2.cache.amazonaws.com:6379"
-var _value = "value-02-02"
+var addr = "master.arch-valkey-02.vovqz2.use2.cache.amazonaws.com:6379"
+var _value = "value-01"
 //var _key  = username + ":issuer:" + username +"-foo-" + _value
-var _key  = "cache-user-02:issuer:cache-user-02-foo-value-02-02"
+var _key  = username + ":issuer:" + username + "-foo-" + _value
 
 // go test -v -run "TestRedisClientPing"
 func TestRedisClientPing(t *testing.T){
