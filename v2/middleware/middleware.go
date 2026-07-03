@@ -47,7 +47,7 @@ func NewMiddleWare(appLogger *zerolog.Logger) *MiddleWare {
 		corsConfig: &CORSConfig{
 			AllowedOrigins: []string{"*"},
 			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders: []string{"Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "X-Amz-Date", "X-Api-Key", "X-Amz-Security-Token"},
+					AllowedHeaders: []string{"Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "X-Amz-Date", "X-Api-Key", "X-Amz-Security-Token", "x-my-token"},
 		},
 	}
 }
