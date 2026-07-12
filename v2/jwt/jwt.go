@@ -16,7 +16,7 @@ import (
 var childLogger = zerolog.New(os.Stdout).
 	With().
 	Str("component", "go-core").
-	Str("package", "internal.jwt").
+	Str("package", "v2.jwt").
 	Timestamp().
 	Logger()
 

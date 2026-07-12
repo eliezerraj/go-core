@@ -65,7 +65,7 @@ func (d *DatabasePGServer) Config(database_url string,
 	dbConfig, err := pgxpool.ParseConfig(database_url)
 	if err!=nil {
 		logger.Error().
-				Err(err).Send()
+			Err(err).Send()
 	}
    
 	dbConfig.MaxConns = defaultMaxConns
@@ -77,19 +77,19 @@ func (d *DatabasePGServer) Config(database_url string,
    
 	dbConfig.BeforeAcquire = func(ctx context.Context, c *pgx.Conn) bool {
 		logger.Debug().
-				Msg("Before acquiring connection pool !")
+			Msg("Before acquiring connection pool !")
 	 	return true
 	}
    
 	dbConfig.AfterRelease = func(c *pgx.Conn) bool {
 		logger.Debug().
-				Msg("After releasing connection pool !")
+			Msg("After releasing connection pool !")
 	 	return true
 	}
    
 	dbConfig.BeforeClose = func(c *pgx.Conn) {
-		d.logger.Debug().
-				Msg("Closed connection pool !")
+		logger.Debug().
+			Msg("Closed connection pool !")
 	}
    
 	return dbConfig
@@ -104,7 +104,7 @@ func (d *DatabasePGServer) NewDatabasePG(ctx context.Context,
 						Str("component", "go-core.v2.database.postgre").
 						Logger()
 	logger.Debug().
-			Str("func","NewDatabasePG").Send()
+		Str("func","NewDatabasePG").Send()
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", 
 							databaseConfig.User, 
@@ -120,14 +120,14 @@ func (d *DatabasePGServer) NewDatabasePG(ctx context.Context,
 											)
 	if err != nil {
 		logger.Error().
-				Err(err).Send()
+			Err(err).Send()
 		return DatabasePGServer{}, err
 	}
 	
 	err = connPool.Ping(ctx)
 	if err != nil {
 		logger.Error().
-				Err(err).Send()
+			Err(err).Send()
 		return DatabasePGServer{}, err
 	}
 
@@ -140,13 +140,13 @@ func (d *DatabasePGServer) NewDatabasePG(ctx context.Context,
 // About acquire connection from pool
 func (d *DatabasePGServer) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	d.logger.Debug().
-			Str("func","NewDatabasePGServer").Send()
+		Str("func","Acquire").Send()
 	
 	connection, err := d.connPool.Acquire(ctx)
 	if err != nil {
 		d.logger.Error().
-				Err(err).
-				Msg("Error while acquiring connection from the database pool!!")
+			Err(err).
+			Msg("Error while acquiring connection from the database pool!!")
 		return nil, err
 	} 
 
@@ -156,7 +156,7 @@ func (d *DatabasePGServer) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 // About release connection
 func (d *DatabasePGServer) Release(connection *pgxpool.Conn) {
 	d.logger.Debug().
-			Str("func","Release").Send()
+		Str("func","Release").Send()
 
 	defer connection.Release()
 }
@@ -164,7 +164,7 @@ func (d *DatabasePGServer) Release(connection *pgxpool.Conn) {
 // About close a get connection
 func (d *DatabasePGServer) GetConnection() (*pgxpool.Pool) {
 	d.logger.Debug().
-			Str("func","GetConnection").Send()
+		Str("func","GetConnection").Send()
 
 	return d.connPool
 }
@@ -172,8 +172,8 @@ func (d *DatabasePGServer) GetConnection() (*pgxpool.Pool) {
 // About close a connection
 func (d *DatabasePGServer) CloseConnection() {
 	d.logger.Info().
-			Str("func","CloseConnection").
-			Msg("Database Close Connection SUCCESSFULL")
+		Str("func","CloseConnection").
+		Msg("Database Close Connection SUCCESSFULL")
 
 	defer d.connPool.Close()
 }
@@ -181,19 +181,19 @@ func (d *DatabasePGServer) CloseConnection() {
 // About start a transaction
 func (d *DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, error) {
 	d.logger.Debug().
-			Str("func","StartTx").Send()
+		Str("func","StartTx").Send()
 
 	conn, err := d.Acquire(ctx)
 	if err != nil {
 		d.logger.Error().
-				Err(err).Msg("error acquire")
+			Err(err).Msg("error acquire")
 		return nil, nil, errors.New(err.Error())
 	}
 	
 	tx, err := conn.Begin(ctx)
     if err != nil {
 		d.logger.Error().
-				Err(err).Msg("error begin")
+			Err(err).Msg("error begin")
         return nil, nil, errors.New(err.Error())
     }
 
@@ -203,7 +203,7 @@ func (d *DatabasePGServer) StartTx(ctx context.Context) (pgx.Tx, *pgxpool.Conn, 
 // About release the connection to pool connection
 func (d *DatabasePGServer) ReleaseTx(connection *pgxpool.Conn) {
 	d.logger.Debug().
-			Str("func","ReleaseTx").Send()
+		Str("func","ReleaseTx").Send()
 
 	defer connection.Release()
 }
@@ -211,7 +211,7 @@ func (d *DatabasePGServer) ReleaseTx(connection *pgxpool.Conn) {
 // About get Stats from database
 func (d *DatabasePGServer) Stat() (*pgxpool.Stat){
 	d.logger.Debug().
-			Str("func","Stat").Send()
+		Str("func","Stat").Send()
 
 	return d.connPool.Stat()
 }
@@ -219,7 +219,7 @@ func (d *DatabasePGServer) Stat() (*pgxpool.Stat){
 // About ping from database
 func (d *DatabasePGServer) Ping() (error){		
 	d.logger.Debug().
-			Str("func","Ping").Send()
+		Str("func","Ping").Send()
 	
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()	
@@ -227,7 +227,7 @@ func (d *DatabasePGServer) Ping() (error){
 	err := d.connPool.Ping(ctx)
 	if err != nil {
 		d.logger.Error().
-				 Err(err).Msg("error ping database")
+			Err(err).Msg("error ping database")
 		return err
 	}	
 	return nil
