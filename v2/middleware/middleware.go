@@ -15,7 +15,7 @@ import (
 
 // contextKey is a type for context keys to avoid collisions
 type contextKey string
-const RequestIDKey contextKey = "request-id"
+const RequestIDKey contextKey = "x-request-id"
 
 // CORSConfig holds CORS configuration
 type CORSConfig struct {
@@ -152,7 +152,7 @@ func (m *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 
 // getOrGenerateRequestID retrieves request ID from header or generates new one
 func getOrGenerateRequestID(r *http.Request) string {
-    if id := r.Header.Get("X-Request-Id"); id != "" {
+    if id := r.Header.Get("x-request-id"); id != "" {
         return id
     }
 	return uuid.New().String()
