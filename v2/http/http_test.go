@@ -20,7 +20,7 @@ func TestGoCore_HttpService(t *testing.T){
 	headers := map[string]string{
 		"Content-Type":  "application/json;charset=UTF-8",
 		"Authorization": "MY-TOKEN:123",
-		"X-Request-Id": "REQ:111-QQQ-RRR-444",
+		"x-request-id": "REQ:111-QQQ-RRR-444",
 	}
 
 	httpClientParameter := HttpClientParameter {

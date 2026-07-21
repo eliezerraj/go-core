@@ -33,7 +33,7 @@ type MiddleWare struct {
 type APIError struct {
 	StatusCode int    `json:"status_code"`
 	Msg        string `json:"message"`
-	RequestID  string `json:"request_id,omitempty"`
+	RequestID  string `json:"x-request-id,omitempty"`
 }
 
 // NewMiddleWare creates a new middleware instance
@@ -80,7 +80,7 @@ func GetRequestID(ctx context.Context) string {
 func DebugContextValues(ctx context.Context, logger *zerolog.Logger) {
 	requestID := GetRequestID(ctx)
 	logger.Debug().
-		Str("request_id_from_key", requestID).
+		Str("x-request-id-from-key", requestID).
 		Interface("context_keys_available", "Use GetRequestID() function").
 		Msg("Context debug info")
 }
@@ -141,7 +141,7 @@ func (m *MiddleWare) MiddleWareHandlerHeader(next http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 
 		m.logger.Debug().
-			Str("request_id", requestID).
+			Str("x-request-id", requestID).
 			Str("method", r.Method).
 			Str("path", r.URL.Path).
 			Msg("Request ID set in context")
@@ -195,7 +195,7 @@ func (m *MiddleWare) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 			if apiErr, ok := err.(*APIError); ok {
 				m.logger.Warn().
 					Err(err).
-					Str("request_id", requestID).
+					Str("x-request-id", requestID).
 					Int("status_code", apiErr.StatusCode).
 					Msg("API error")
 				m.WriteJSON(w, apiErr.StatusCode, apiErr)
@@ -205,7 +205,7 @@ func (m *MiddleWare) MiddleWareErrorHandler(h apiFunc) http.HandlerFunc {
 			// Handle all other error types
 			m.logger.Error().
 				Err(err).
-				Str("request_id", requestID).
+				Str("x-request-id", requestID).
 				Msg("Internal server error")
 
 			apiErr := NewAPIError(
@@ -225,7 +225,7 @@ func (m *MiddleWare) MiddleWareRecovery(next http.Handler) http.Handler {
 				requestID := GetRequestID(r.Context())
 				m.logger.Error().
 					Interface("panic", err).
-					Str("request_id", requestID).
+					Str("x-request-id", requestID).
 					Msg("Handler panic recovered")
 
 				apiErr := NewAPIError(
