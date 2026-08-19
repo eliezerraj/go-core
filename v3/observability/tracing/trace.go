@@ -1,9 +1,9 @@
-package otel
+package tracing
 
 import(
 	"time"
+	"log"
 	"context"
-	"github.com/rs/zerolog"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -14,8 +14,6 @@ import(
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/sdk/resource"
-
-	go_core_middleware "github.com/eliezerraj/go-core/v2/middleware"
 )
 
 // Struct for tracer information
@@ -52,15 +50,9 @@ var requestIdKey = "x-request-id"
 // About create a http tracer provider
 func NewTracerProvider(	ctx context.Context, 
 						envTrace 	EnvTrace, 
-						infoTrace 	InfoTrace,
-						appLogger 	*zerolog.Logger) *TracerProvider {
+						infoTrace 	InfoTrace) *TracerProvider {
 
-	logger := appLogger.With().
-						Str("component", "go-core.v2.otel.trace").
-						Logger()
-
-	logger.Debug().
-		Str("func","NewTracerProvider").Send()
+	log.Println("Creating new tracer provider")
 
 	var stdout_export sdktrace.SpanExporter
 	var err error
@@ -68,9 +60,7 @@ func NewTracerProvider(	ctx context.Context,
 	if envTrace.UseStdoutTracerExporter {
 		stdout_export, err = stdouttrace.New()
 		if err != nil {
-			logger.Warn().
-				Err(err).
-				Msg("Fail create STDOUT trace exporter WARNING !!!")
+			log.Fatalf("Fail create STDOUT trace exporter WARNING !!!: %+v", err)
 		}
 	}
 
@@ -89,16 +79,12 @@ func NewTracerProvider(	ctx context.Context,
 										otlptracegrpc.WithEndpoint(envTrace.OtelExportEndpoint),
 									),)
 	if err != nil {
-		logger.Error().
-			Err(err).
-			Msg("Erro create OTEL trace exporter")
+		log.Fatalf("Error create OTEL trace exporter: %+v", err)
 	}
 
 	resources, err := buildResources(ctx, infoTrace, envTrace)
 	if err != nil {
-		logger.Error().
-			Err(err).
-			Msg("Erro to build OTEL resource")
+		log.Fatalf("Error create OTEL resource: %+v", err)
 	}
 
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -109,13 +95,11 @@ func NewTracerProvider(	ctx context.Context,
 		sdktrace.WithIDGenerator(xray.NewIDGenerator()),
 	)
 	
-	logger.Debug().
-		Str("func","NewTracerProvider").
-		Msg("OTEL Tracer Provider created successfully")
+	log.Println("OTEL Tracer Provider created successfully")
 	
 	return &TracerProvider{
 		TracerProvider: tracerProvider,
-		Tracer: tracerProvider.Tracer("github.com/eliezerraj/go-core/v2/otel/trace"),
+		Tracer: tracerProvider.Tracer("github.com/eliezerraj/go-core/v3/otel/trace"),
 	}
 }
 
@@ -149,7 +133,6 @@ func buildResources(ctx context.Context,
 func (t *TracerProvider) SpanCtx(ctx context.Context, 
 								 spanName string,
 								 spanKind trace.SpanKind) (context.Context, trace.Span) {
-
 	// Get request ID from context using middleware function
 
 	id, ok := ctx.Value(requestIdKey).(string)
