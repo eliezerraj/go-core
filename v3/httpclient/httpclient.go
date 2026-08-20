@@ -1,15 +1,12 @@
 package httpclient
 
 import (
-//	"bytes"
-//	"context"
-//	"fmt"
 	"net/http"
-//	"net/http/httptrace"
 	"sync"
 	"time"
 
 	"github.com/eliezerraj/go-core/v3/logger"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type HttpConfig struct {
@@ -55,7 +52,7 @@ func NewHttpClient(cfg *HttpConfig) *Client {
 	}
 
 	httpClient := &http.Client{
-		Transport: transport,
+		Transport: otelhttp.NewTransport(transport),
 		Timeout:   cfg.Timeout,
 	}
 

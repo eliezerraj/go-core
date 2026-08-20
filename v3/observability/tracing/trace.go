@@ -14,6 +14,8 @@ import(
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 // Struct for tracer information
@@ -94,6 +96,11 @@ func NewTracerProvider(	ctx context.Context,
 		sdktrace.WithBatcher(stdout_export),
 		sdktrace.WithIDGenerator(xray.NewIDGenerator()),
 	)
+	
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
 	
 	log.Println("OTEL Tracer Provider created successfully")
 	
