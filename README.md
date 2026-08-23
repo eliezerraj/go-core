@@ -10,7 +10,7 @@
 # project root
 cd "C:\Eliezer\workspace\github.com\go-inventory-v2"
 go work init .
-go work use ../go-core
+go work use ../go-core/v3
 
 #usage
 go work sync
