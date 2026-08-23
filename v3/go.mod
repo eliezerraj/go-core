@@ -3,6 +3,7 @@ module github.com/eliezerraj/go-core/v3
 go 1.25.0
 
 require (
+	github.com/confluentinc/confluent-kafka-go/v2 v2.15.0
 	github.com/jackc/pgx/v5 v5.10.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
 	go.opentelemetry.io/contrib/propagators/aws v1.45.0

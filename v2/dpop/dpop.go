@@ -261,9 +261,6 @@ func (d *DPoP) CreateTokenDPopWithAccessToken(	htm string,
 	return signedToken, nil
 }
 
-
-
-
 func (d *DPoP) IssueAccessTokenwithDpop(token string, 
 										method string,
 										url string,

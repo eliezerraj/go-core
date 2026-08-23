@@ -135,25 +135,3 @@ func buildResources(ctx context.Context,
 		resource.WithAttributes(attributes(infoTrace, envTrace)...),
 	)
 }
-
-// About create a span and return the context
-func (t *TracerProvider) SpanCtx(ctx context.Context, 
-								 spanName string,
-								 spanKind trace.SpanKind) (context.Context, trace.Span) {
-	// Get request ID from context using middleware function
-
-	id, ok := ctx.Value(requestIdKey).(string)
-	if !ok {
-		id = "not-informed"
-	}
-
-	ctx, span := t.Tracer.Start(ctx,
-							  	spanName,
-							  	trace.WithSpanKind(spanKind),
-									trace.WithAttributes(
-									attribute.String(string(requestIdKey), id),
-								),
-	)
-
-	return ctx, span
-}
