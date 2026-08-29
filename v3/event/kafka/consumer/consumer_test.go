@@ -50,7 +50,7 @@ func TestNewConsumerWorker(t *testing.T) {
 	messagesRead := 0
 
 	for time.Now().Before(deadline) {
-		msg, err := consumerWorker.consumer.ReadMessage(5 * time.Second)
+		msg, err := consumerWorker.Consumer.ReadMessage(5 * time.Second)
 		if err != nil {
 			if kafkaErr, ok := err.(kafka.Error); ok && kafkaErr.Code() == kafka.ErrTimedOut {
 				t.Log("No message received in the current polling window; continuing")

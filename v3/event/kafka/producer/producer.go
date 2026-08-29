@@ -1,15 +1,24 @@
 package producer
 
 import(
+	"context"
+	"fmt"
+	"strings"
+
 	"go.uber.org/zap"
 
 	"github.com/eliezerraj/go-core/v3/logger"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type ProducerWorker struct{
-	producer        	*kafka.Producer
+	producer *kafka.Producer
 }
 
 func NewProducerWorker(kafkaConfig *kafka.ConfigMap) (*ProducerWorker, error) {
@@ -25,11 +34,37 @@ func NewProducerWorker(kafkaConfig *kafka.ConfigMap) (*ProducerWorker, error) {
 	}, nil
 }
 
-func (p *ProducerWorker) ProduceMessage(topic string, 
+func (p *ProducerWorker) ProduceMessage(ctx context.Context,				topic string, 
 										key string,
 								  		kafkaHeader []kafka.Header,
 								  		message []byte) error {
 	logger.InfoOutCtx("producing message to kafka topic")
+    
+	// 1. Extract x-request-id from kafka headers
+    var requestID string
+    for _, h := range kafkaHeader {
+        if strings.EqualFold(h.Key, "x-request-id") {
+            requestID = string(h.Value)
+            break
+        }
+    }
+
+	// 2. Build span attributes
+    attrs := []attribute.KeyValue{
+        semconv.MessagingSystemKafka,
+        semconv.MessagingDestinationName(topic),
+        semconv.MessagingKafkaMessageKey(key),
+    }
+    if requestID != "" {
+        attrs = append(attrs, attribute.String("x-request-id", requestID))
+    }
+
+	tr := otel.Tracer("kafka-producer")
+    ctx, span := tr.Start(ctx, fmt.Sprintf("%s publish", topic),
+        trace.WithSpanKind(trace.SpanKindProducer),
+        trace.WithAttributes(attrs...),
+    )
+    defer span.End()
 
 	deliveryChan := make(chan kafka.Event)
 
