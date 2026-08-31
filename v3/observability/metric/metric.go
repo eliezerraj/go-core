@@ -2,6 +2,9 @@ package metric
 
 import(
 	"context"
+	
+	"github.com/eliezerraj/go-core/v3/logger"
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/otel/attribute"
 
@@ -23,7 +26,8 @@ type InfoMetric struct {
 // About initialize MeterProvider with Prometheus exporter
 func NewMeterProvider(	ctx context.Context, 
 						infoMetric InfoMetric) (*sdkmetric.MeterProvider, error) {
-
+	logger.InfoOutCtx("Initializing MeterProvider with Prometheus exporter")
+	
 	// 1. Configurar o Recurso OTel
 	res, err := resource.New(ctx,
 							resource.WithSchemaURL(semconv.SchemaURL),
@@ -33,12 +37,14 @@ func NewMeterProvider(	ctx context.Context,
 							),
 	)
 	if err != nil {
+		logger.ErrorOutCtx("Error creating OTel resource", zap.Any("error", err))
 		return nil, err
 	}
 
 	// 2. Criar o Prometheus Exporter
 	exporter, err := prometheus.New()
 	if err != nil {
+		logger.ErrorOutCtx("Error creating Prometheus exporter", zap.Any("error", err))
 		return nil, err
 	}
 

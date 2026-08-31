@@ -2,8 +2,10 @@ package tracing
 
 import(
 	"time"
-	"log"
 	"context"
+
+	"github.com/eliezerraj/go-core/v3/logger"
+	"go.uber.org/zap"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -54,7 +56,7 @@ func NewTracerProvider(	ctx context.Context,
 						envTrace 	EnvTrace, 
 						infoTrace 	InfoTrace) *TracerProvider {
 
-	log.Println("Creating new tracer provider")
+	logger.InfoOutCtx("Creating new tracer provider")
 
 	var stdout_export sdktrace.SpanExporter
 	var err error
@@ -62,7 +64,7 @@ func NewTracerProvider(	ctx context.Context,
 	if envTrace.UseStdoutTracerExporter {
 		stdout_export, err = stdouttrace.New()
 		if err != nil {
-			log.Fatalf("Fail create STDOUT trace exporter WARNING !!!: %+v", err)
+			logger.ErrorOutCtx("Fail create STDOUT trace exporter WARNING !!!", zap.Any("error", err))
 		}
 	}
 
@@ -81,12 +83,12 @@ func NewTracerProvider(	ctx context.Context,
 										otlptracegrpc.WithEndpoint(envTrace.OtelExportEndpoint),
 									),)
 	if err != nil {
-		log.Fatalf("Error create OTEL trace exporter: %+v", err)
+		logger.ErrorOutCtx("Error create OTEL trace exporter", zap.Any("error", err))
 	}
 
 	resources, err := buildResources(ctx, infoTrace, envTrace)
 	if err != nil {
-		log.Fatalf("Error create OTEL resource: %+v", err)
+		logger.ErrorOutCtx("Error create OTEL resource", zap.Any("error", err))
 	}
 
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -102,7 +104,7 @@ func NewTracerProvider(	ctx context.Context,
 		propagation.Baggage{},
 	))
 	
-	log.Println("OTEL Tracer Provider created successfully")
+	logger.InfoOutCtx("OTEL Tracer Provider created successfully")
 	
 	return &TracerProvider{
 		TracerProvider: tracerProvider,
