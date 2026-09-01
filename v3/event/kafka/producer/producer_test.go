@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -51,7 +52,7 @@ func TestNewProducerWorker(t *testing.T) {
 	kafkaHeaders = append(kafkaHeaders, kafka.Header{Key: "custom-header-id", Value: []byte("MY-CUSTOM-HEADER-001")})
 	kafkaHeaders = append(kafkaHeaders, kafka.Header{Key: "tracer-id", Value: []byte("MY-TRACER-TEST-002")})
 
-	err = producerWorker.ProduceMessage(topic, key, kafkaHeaders, payload_bytes)
+	err = producerWorker.ProduceMessage(context.Background(), topic, key, kafkaHeaders, payload_bytes)
 	if err != nil {
 		t.Errorf("Failed to produce message: %v", err)
 	} else {
