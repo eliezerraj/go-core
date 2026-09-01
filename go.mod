@@ -1,4 +1,4 @@
-module github/eliezerraj/go-core
+module github.com/eliezerraj/go-core
 
 go 1.25.0
 
@@ -11,8 +11,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.66.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.110.0
 	github.com/confluentinc/confluent-kafka-go/v2 v2.15.0
-	github.com/eliezerraj/go-core/v2 v2.0.0-20260817190500-ffbb91e07870
-	github.com/eliezerraj/go-core/v3 v3.0.0-20260823232348-f85e574642c6
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1

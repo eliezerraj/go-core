@@ -59,10 +59,6 @@ github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XL
 github.com/confluentinc/confluent-kafka-go/v2 v2.15.0 h1:Nfz04XU4qtT4/OU3zibwJVjUYs5SG35d2SwBIQ+L2FY=
 github.com/confluentinc/confluent-kafka-go/v2 v2.15.0/go.mod h1:uvixf1aKCnE5NHlELzZpO4k6TQc1DJalz67dVGaYxIs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/eliezerraj/go-core/v2 v2.0.0-20260817190500-ffbb91e07870 h1:7Ri/rx487j2mctJPBmflkVLhGztCtjXhKht7I6rPC24=
-github.com/eliezerraj/go-core/v2 v2.0.0-20260817190500-ffbb91e07870/go.mod h1:4lJze+hutrxUzmFJKL/NU/MPtt5WjZf0pYlKBC4luFM=
-github.com/eliezerraj/go-core/v3 v3.0.0-20260823232348-f85e574642c6 h1:8k00HmEXMi2JamLwBCDyUDSu0pvs7dYYFQMEbOayTkk=
-github.com/eliezerraj/go-core/v3 v3.0.0-20260823232348-f85e574642c6/go.mod h1:guYTJlqTLYYHqSO64yB0OoYMYYusSHhHt4GJbNryOTQ=
 github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
 github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
