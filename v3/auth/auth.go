@@ -7,8 +7,11 @@ import (
 	"time"
 	"crypto"
 	"encoding/json"
+	"strings"
 
 	"go.uber.org/zap"
+
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
  	"github.com/golang-jwt/jwt/v5"
@@ -21,7 +24,7 @@ type AuthService struct {
 	httpConfig *httpclient.HttpConfig
 	jwksUrl string
 	dryRun bool
-	header string
+	headerkey string
 	publicKeys map[string]crypto.PublicKey
 	httpTimeout time.Duration
 }
@@ -33,7 +36,8 @@ const (
 	KeepAlive         = "keep-alive"
 )
 
-func NewAuthService(jwksUrl string, dryRun bool, header string, httpTimeout time.Duration) *AuthService {
+// NewAuthService initializes a new instance of AuthService with the provided configuration.
+func NewAuthService(jwksUrl string, dryRun bool, headerkey string, httpTimeout time.Duration) *AuthService {
 	logger.Info(context.Background(), "Initializing AuthService SUCCESSFULLY")
 
 	httpConfig := &httpclient.HttpConfig{
@@ -50,7 +54,7 @@ func NewAuthService(jwksUrl string, dryRun bool, header string, httpTimeout time
 		httpConfig:  httpConfig,
 		jwksUrl:     jwksUrl,
 		dryRun:      dryRun,
-		header:      header,
+		headerkey:    headerkey,
 		httpTimeout: httpTimeout,
 	}
 }
@@ -140,7 +144,7 @@ func(a *AuthService) GetJwksUrl(ctx context.Context) ( error) {
 
 // VerifyToken verifies the given JWT token using the public keys stored in the AuthService. It returns an error if the token is invalid or cannot be verified.
 func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, error) {
-	logger.Info(ctx, "Verifying token")
+	logger.Debug(ctx, "Verifying token")
 
     parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
         if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -148,21 +152,27 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
             return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
         }
 
+		fmt.Println("====1: Extracting 'kid' from token header")
 		// Extract the 'kid' from the token header and use it to look up the corresponding public key.
         kid, ok := token.Header["kid"].(string)
         if !ok {
             return nil, fmt.Errorf("missing or invalid 'kid' header in token")
         }
 
+		fmt.Println("====2: Looking up public key for 'kid':", kid)
 		// Look up the public key KID corresponding to the 'kid' in the token header.
         pubKey, ok := a.publicKeys[kid]
         if !ok {
             return nil, fmt.Errorf("public key not found for kid: %s", kid)
         }
 
+		fmt.Println("====3: Found public key for 'kid':", kid)
         return pubKey, nil
     })
 	
+	fmt.Println(token)
+	fmt.Println("===================> Parsed token details:", err.Error())
+
     if err != nil {
         logger.Error(ctx, "Failed to parse token", zap.Error(err))
         return nil, err
@@ -182,4 +192,37 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
     token = parsedToken.Raw
 
 	return claims, nil
+}
+
+// FiberAuthorizationMiddleware returns a Fiber middleware handler that verifies the JWT token in the Authorization header. If the token is invalid or missing, it responds with a 401 Unauthorized status. If dryRun is enabled, it skips verification.
+func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		logger.Debug(c.UserContext(), "Verifying token for Fiber request")
+
+		if a.dryRun {
+			return c.Next()
+		}
+
+		c.Accepts("application/json")
+		token := c.Get(a.headerkey)
+		
+		if token == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Authorization header is required",
+			})
+		}
+
+		if len(token) > 7 && strings.EqualFold(token[:7], "bearer ") {
+			token = token[7:]
+		}
+
+		_, err := a.VerifyToken(c.UserContext(), token)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		return c.Next()
+	}
 }
