@@ -2,7 +2,6 @@ package httpclient
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/eliezerraj/go-core/v3/logger"
@@ -26,7 +25,6 @@ type IHTTPClient interface {
 
 type Client struct {
 	*http.Client
-	mu sync.Mutex
 }
 
 type Requester struct {
@@ -57,7 +55,7 @@ func NewHttpClient(cfg *HttpConfig) *Client {
 	}
 
 	return &Client{
-		httpClient, sync.Mutex{},
+		httpClient,
 	}
 }
 
@@ -73,7 +71,5 @@ func NewRequester(host, path, method string, headers map[string]string, body []b
 }
 
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	return c.Client.Do(req)
 }
