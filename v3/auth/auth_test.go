@@ -12,7 +12,6 @@ func TestGetJwksUrl(t *testing.T) {
 	ctx := context.Background()
 
 	jwksUrl := "http://localhost:7100/v1/.well-known/jwks.json"
-
 	authService := NewAuthService(jwksUrl, false, "Authorization", 5*time.Second)
 
 	err := authService.GetJwksUrl(ctx)
@@ -21,10 +20,26 @@ func TestGetJwksUrl(t *testing.T) {
 	}
 	assert.NoError(t, err)
 
-	token := "eyJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQta2lkIiwidHlwIjoiSldUIn0.eyJjbGllbnRfaWQiOiJ0ZXN0Z2UiLCJzY29wZSI6InRlc3RlOnJlYWQiLCJpc3MiOiJnby1hdXRob3JpemVyLXYyIiwic3ViIjoidGVzdGdlIiwiYXVkIjpbImF1ZC10ZXN0ZSJdLCJleHAiOjE3ODg0ODA4MzYsIm5iZiI6MTc4ODQ3NzIzNiwiaWF0IjoxNzg4NDc3MjM2LCJqdGkiOiJlODA1NmUxYy0zNjg4LTRhNDEtODcyNi1hYTE3MmI0NWFjYmUifQ.PryjtTJqDvGMJO8NWKrRm85DkospSFOjmuo5V2cZWAKl7qjnQ_AJWOB7NApVX0iU-m-3UwFX-fIzendC_DtPKEp3vcBJ67otpuXDVjf_hjoJIU5P78b-2qObxqJpNsaxnECZrVIj12yG3hW37_oN843DAaM-Wf5FkGyo6wf1HHoOdSVxg6nfqSA9tbB9NvEfyMb3mYotuwMBaHyWfTaoFLuwDuCeSCeQEJCIYYVi5dw7qy3CT89cS78RxiDHHV57jwjjEc3wzkxlEPMGVfcrnF357V4OVjmmQ4x-TO-ZhKerhkNnBZeFQLT2SSVHbEUPX282vs4_FcjiwEbENhD36lnbUCbDRuKb7T3bYBlrbHHxHuC3wj72AsnH7rsPdzzvAqmTh3Gyw-8MNG1amTJB4eJ8ksNTu6IFmX8WWwjMWtM5mok2n8xX_ez-eI5Q8bn3Hvq-NmWkc7GnBB1sOFKj-pAA8iCoqqEcqNMaQSNPWSsK9Zfwy5BrETcXrWjJoB7j"
+	token := "eyJhbGciOiJSUzI1NiIsImtpZCI6ImdvLWF1dGhvcml6ZXItdjIta2V5LTIwMjYtMDkiLCJ0eXAiOiJKV1QifQ.eyJjbGllbnRfaWQiOiJjbGllbnQtdGVzdC0wMSIsInNjb3BlIjoidGVzdGU6cmVhZCIsImlzcyI6ImdvLWF1dGhvcml6ZXItdjIiLCJzdWIiOiJjbGllbnQtdGVzdC0wMSIsImF1ZCI6WyJhdWQtdGVzdGUiXSwiZXhwIjoxNzg4Njk5MDkyLCJuYmYiOjE3ODg2NjMwOTIsImlhdCI6MTc4ODY2MzA5MiwianRpIjoiZWRiNWJjZTktZGRlZi00NTVlLTg0YWYtN2IzMWNkMDI2YjFkIn0.f62lZ8VdCok8GhxAvRO0NXYnapT36CNzKa-k-ST8vDqUvYCAqGC-mYNwROYbcUaimAiicNG8iYNhr2BOBjWflddRJu5-20b_KhbqbqD6Mxa4zjN3lvKE8WxqaUJOQksCdSA8iG-mTOkR56S8--pAZM-XUV8ypw4nKYaK_ffwtst7JpDRqixIuFCSI-UGfkUH72aDA38ST3joMppbRhrblk5F41e3rBL9JREgEhJ32mqgO6nHycbGLN4-S5eJW6RlEFEWUzjMnPVnc3ioDT98Eih5ASBY0NgRl6XET6aqN3cRLOQWPFqOu12G7N-l3y9eQoh4mwSlqO2tGquoR6jcF18oUWbBtJerbeHsiae2bsCsMPKgJZ6ovarAOuvGTICP5sDL8YL6i0PBOlWHwxlzozt-EYZoyX-I7MgnYpCWxE2ucReLXCQPIw0BHTn44Q7lK7NEnVPQduHdK0WA_gwqRzHjlL6pSbsoT9cCzTovmWP03TFUedQDeQPSX-xc2HmW"
 	claims, err := authService.VerifyToken(ctx, token)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, claims)
+
+	authClientService := NewAuthClientService(func(a *AuthClientService) {
+		a.authURL = "http://localhost:7100/v1/login"
+		a.refreshURL = "http://localhost:7100/v1/refresh"
+		a.clientID = "client-test-01"
+		a.clientSecret = "client-secret-test-01"
+		a.dryRun = false
+		a.refreshInterval = 60
+	})
+	
+	accessToken, err := authClientService.StartAuthenticate(ctx)
+
+	time.Sleep(300 * time.Second)
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, accessToken)
 
 }

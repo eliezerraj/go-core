@@ -152,27 +152,21 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
             return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
         }
 
-		fmt.Println("====1: Extracting 'kid' from token header")
 		// Extract the 'kid' from the token header and use it to look up the corresponding public key.
         kid, ok := token.Header["kid"].(string)
         if !ok {
             return nil, fmt.Errorf("missing or invalid 'kid' header in token")
         }
 
-		fmt.Println("====2: Looking up public key for 'kid':", kid)
 		// Look up the public key KID corresponding to the 'kid' in the token header.
         pubKey, ok := a.publicKeys[kid]
         if !ok {
             return nil, fmt.Errorf("public key not found for kid: %s", kid)
         }
 
-		fmt.Println("====3: Found public key for 'kid':", kid)
         return pubKey, nil
     })
 	
-	fmt.Println(token)
-	fmt.Println("===================> Parsed token details:", err.Error())
-
     if err != nil {
         logger.Error(ctx, "Failed to parse token", zap.Error(err))
         return nil, err
