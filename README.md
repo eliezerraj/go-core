@@ -7,7 +7,7 @@ Current V3
 cd "C:\Eliezer\workspace\github.com\go-inventory-v2"
 
 # start project
-go mod init .
+go mod init github.com/eliezerraj/go-core
 
 # install
 go mod tidy
