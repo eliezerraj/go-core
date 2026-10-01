@@ -11,7 +11,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
  	"github.com/golang-jwt/jwt/v5"
@@ -190,8 +190,8 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
 
 // FiberAuthorizationMiddleware returns a Fiber middleware handler that verifies the JWT token in the Authorization header. If the token is invalid or missing, it responds with a 401 Unauthorized status. If dryRun is enabled, it skips verification.
 func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		logger.Debug(c.UserContext(), "Verifying token for Fiber request")
+	return func(c fiber.Ctx) error {
+		logger.Debug(c.Context(), "Verifying token for Fiber request")
 
 		if a.dryRun {
 			return c.Next()
@@ -210,7 +210,7 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 			token = token[7:]
 		}
 
-		_, err := a.VerifyToken(c.UserContext(), token)
+		_, err := a.VerifyToken(c.Context(), token)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": err.Error(),
