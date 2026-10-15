@@ -8,6 +8,7 @@ import (
 	"crypto"
 	"encoding/json"
 	"strings"
+	"errors"
 
 	"go.uber.org/zap"
 
@@ -18,6 +19,10 @@ import (
 
 	"github.com/eliezerraj/go-core/v3/logger"
 	"github.com/eliezerraj/go-core/v3/httpclient"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type AuthService struct {
@@ -97,7 +102,7 @@ func(a *AuthService) GetJwksUrl(ctx context.Context) ( error) {
 	case http.StatusOK:
 		// Continue processing
 	case http.StatusNotFound:
-		logger.Error(ctx, "Auth service returned 404 Not Found")
+		logger.Warn(ctx, "Auth service returned 404 Not Found")
 		return fmt.Errorf("auth service returned status: %d", resp.StatusCode)
 	default:
 		logger.Error(ctx, "Auth service returned unexpected status", zap.Int("status", resp.StatusCode))
@@ -168,18 +173,18 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
     })
 	
     if err != nil {
-        logger.Error(ctx, "Failed to parse token", zap.Error(err))
+        logger.Warn(ctx, "Failed to parse token", zap.Error(err))
         return nil, err
     }
 
     if !parsedToken.Valid {
-        logger.Error(ctx, "Token is invalid")
+        logger.Warn(ctx, "Token is invalid")
         return nil, fmt.Errorf("token is invalid")
     }
 
 	claims, ok := parsedToken.Claims.(*Claims)
 	if !ok {
-		logger.Error(ctx, "Failed to cast token claims")
+		logger.Warn(ctx, "Failed to cast token claims")
 		return nil, fmt.Errorf("failed to cast token claims")
 	}
 	
@@ -192,15 +197,22 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
 func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		logger.Debug(c.Context(), "Verifying token for Fiber request")
-
+		
 		if a.dryRun {
 			return c.Next()
 		}
+
+		ctx, span := otel.Tracer("go-core.authServer").Start(c.Context(), "auth.verify_token")
+		c.SetContext(ctx)
 
 		c.Accepts("application/json")
 		token := c.Get(a.headerkey)
 		
 		if token == "" {
+			span.RecordError(errors.New("authorization header missing"))
+            span.SetStatus(codes.Error, "missing token")
+
+			logger.Warn(c.Context(), "Authorization header is missing")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Authorization header is required",
 			})
@@ -210,12 +222,31 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 			token = token[7:]
 		}
 
-		_, err := a.VerifyToken(c.Context(), token)
+		claims, err := a.VerifyToken(ctx, token)
 		if err != nil {
+			span.RecordError(err)
+            span.SetStatus(codes.Error, "token validation failed")
+
+			logger.Warn(c.Context(), "Token validation failed", zap.Error(err))
+
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		}
+
+		// Map Claims to AccessTokenClaims
+		accessTokenClaims := &AccessTokenClaims{
+			Issuer:   claims.Issuer,
+			Subject:  claims.Subject,
+			Audience: claims.Audience,
+			JWTID:    claims.ID,
+			Scope:    claims.Scope,
+		}
+
+		span.SetAttributes(
+            attribute.String("auth.jti", accessTokenClaims.JWTID),
+        )
+		span.End()
 
 		return c.Next()
 	}

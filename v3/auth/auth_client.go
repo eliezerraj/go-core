@@ -210,7 +210,7 @@ func (a *AuthClientService) DoHttpRequest(ctx context.Context) (*authorizationRe
 	case http.StatusCreated:
 		// Continue processing
 	case http.StatusNotFound:
-		logger.Error(ctx, "Auth service returned 404 Not Found")
+		logger.Warn(ctx, "Auth service returned 404 Not Found")
 		return nil, fmt.Errorf("auth service returned status: %d", resp.StatusCode)
 	default:
 		logger.Error(ctx, "Auth service returned unexpected status", zap.Int("status", resp.StatusCode))

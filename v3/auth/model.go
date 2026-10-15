@@ -20,3 +20,12 @@ type Claims struct {
 	Scope string `json:"scope"`
 	jwt.RegisteredClaims
 }
+
+type AccessTokenClaims struct {
+    Issuer    string        `json:"iss"`
+    Subject   string        `json:"sub"`
+    Audience  []string      `json:"aud"`
+    JWTID     string        `json:"jti"`
+    ClientID  string        `json:"client_id,omitempty"`
+    Scope     string        `json:"scope,omitempty"`
+}
