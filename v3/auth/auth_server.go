@@ -209,10 +209,14 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 		token := c.Get(a.headerkey)
 		
 		if token == "" {
-			span.RecordError(errors.New("authorization header missing"))
-            span.SetStatus(codes.Error, "missing token")
+			logger.Warn(c.Context(), "Authorization header is required")
+			span.RecordError(errors.New("authorization header required"))
+            span.SetStatus(codes.Error, "missing header")
+			span.SetAttributes(
+				attribute.Int("http.response.status_code", fiber.StatusUnauthorized),
+			)
+			span.End()
 
-			logger.Warn(c.Context(), "Authorization header is missing")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Authorization header is required",
 			})
@@ -224,11 +228,13 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 
 		claims, err := a.VerifyToken(ctx, token)
 		if err != nil {
+			logger.Warn(c.Context(), "Token validation failed", zap.Error(err))
 			span.RecordError(err)
             span.SetStatus(codes.Error, "token validation failed")
-
-			logger.Warn(c.Context(), "Token validation failed", zap.Error(err))
-
+			span.SetAttributes(
+				attribute.Int("http.response.status_code", fiber.StatusUnauthorized),
+			)
+			span.End()
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": err.Error(),
 			})
