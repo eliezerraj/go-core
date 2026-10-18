@@ -25,6 +25,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
+// contextKey is a custom type used for storing values in context.Context to avoid collisions.
+type contextKey string
+const AccessTokenClaimsKey contextKey = "access_token_claims"
+
 type AuthService struct {
 	httpConfig *httpclient.HttpConfig
 	jwksUrl string
@@ -66,7 +70,7 @@ func NewAuthService(jwksUrl string, dryRun bool, headerkey string, httpTimeout t
 
 // GetJwksUrl retrieves the JWKS URL from the auth service and ensures it is accessible.
 func(a *AuthService) GetJwksUrl(ctx context.Context) ( error) {
-	logger.Info(ctx, "Retrieving JWKS URL from auth service")
+	logger.Debug(ctx, "Retrieving JWKS URL from auth service")
 
 	ctxHttpTimeout, cancel := context.WithTimeout(ctx, a.httpTimeout)
 	defer cancel()
@@ -149,9 +153,8 @@ func(a *AuthService) GetJwksUrl(ctx context.Context) ( error) {
 
 // VerifyToken verifies the given JWT token using the public keys stored in the AuthService. It returns an error if the token is invalid or cannot be verified.
 func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, error) {
-	logger.Debug(ctx, "Verifying token")
-
-    parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+    
+	parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
         if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			logger.Error(ctx, "Unexpected signing method", zap.Any("alg", token.Header["alg"]))
             return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -247,6 +250,13 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 			Audience: claims.Audience,
 			JWTID:    claims.ID,
 			Scope:    claims.Scope,
+		}
+
+		// Store the access token claims in the context for downstream handlers.
+		if accessTokenClaims != nil {
+			logger.Debug(ctx, "Storing access token claims in context")
+			ctx = context.WithValue(ctx, AccessTokenClaimsKey, accessTokenClaims)
+			c.SetContext(ctx)
 		}
 
 		span.SetAttributes(
