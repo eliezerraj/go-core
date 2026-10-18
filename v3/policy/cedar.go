@@ -105,7 +105,15 @@ func (p *CedarClient) FiberPolicyEvaluationMiddleware(action string) fiber.Handl
 
 		accessTokenClaims, ok := c.Context().Value(auth.AccessTokenClaimsKey).(*auth.AccessTokenClaims)
 		if !ok {
-			logger.Warn(ctx, "Access token claims not found in context")
+			logger.Error(ctx, "Access token claims not found in context")
+			span.RecordError(errors.New("Unauthorized by token claims malformed"))
+			span.SetStatus(codes.Error, "Unauthorized by token claims malformed")
+			span.End()
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"status_code": fiber.StatusUnauthorized,
+				"reason": "Unauthorized by token claims malformed",
+				"error":"Unauthorized by token claims malformed",
+			})
 		} else {
 			logger.Info(ctx, "Access token claims found", zap.Any("claims", accessTokenClaims))
 		}
