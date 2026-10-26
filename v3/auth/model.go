@@ -17,7 +17,8 @@ type JWK struct {
 }
 
 type Claims struct {
-	Scope string `json:"scope"`
+	Scope   string `json:"scope"`
+    Role    string `json:"role,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -28,4 +29,5 @@ type AccessTokenClaims struct {
     JWTID     string        `json:"jti"`
     ClientID  string        `json:"client_id,omitempty"`
     Scope     string        `json:"scope,omitempty"`
+    Role      string        `json:"role,omitempty"`
 }

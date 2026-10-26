@@ -7,9 +7,9 @@ import (
 )
 
 func TestNewCedarClient(t *testing.T) {
-	policyPath := "./policy.cedar"
+	policyPath := "./policy/policy.cedar"
 
-	client, err := NewCedarClient(policyPath)
+	client, err := NewCedarClient(policyPath, false)
 	if err != nil {
 		t.Logf("Failed to create Cedar client: %v (expected if policy file doesn't exist)", err)
 		return
@@ -33,7 +33,7 @@ func TestNewCedarClient(t *testing.T) {
 				"iss":       cedar.String("go-authorizer-v2"),
 				"sub":       cedar.String("client-test-23"),
 				"scopes": cedar.NewSet(
-					cedar.String("inventory:read"),
+					//cedar.String("inventory:read"),
 					cedar.String("inventory:create"),
 					cedar.String("inventory:update"),
 					cedar.String("order:read"),
@@ -44,6 +44,10 @@ func TestNewCedarClient(t *testing.T) {
 					cedar.String("statistics:compute"),
 					cedar.String("inventory_a2a:monitor"),
 					cedar.String("inventory_a2a:manage"),
+				),
+				"roles": cedar.NewSet(
+					cedar.String("admin"),
+					cedar.String("order-admin-role"),
 				),
 			},
 		),

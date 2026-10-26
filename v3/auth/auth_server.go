@@ -250,6 +250,7 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 			Audience: claims.Audience,
 			JWTID:    claims.ID,
 			Scope:    claims.Scope,
+			Role:     claims.Role,
 		}
 
 		// Store the access token claims in the context for downstream handlers.
