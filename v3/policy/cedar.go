@@ -123,16 +123,17 @@ func (p *CedarClient) FiberPolicyEvaluationMiddleware(action string) fiber.Handl
 			cedar.String(accessTokenClaims.ClientID),
 		)
 
-		resourceUID := cedar.NewEntityUID(
-			cedar.EntityType("Resource"),
-			cedar.String("product"),
-		)
-
 		// Parse scopes from accessTokenClaims.Scope string
 		scopeList := strings.Fields(accessTokenClaims.Scope)
 		scopeSet := make([]cedar.Value, len(scopeList))
 		for i, scope := range scopeList {
 			scopeSet[i] = cedar.String(scope)
+		}
+
+		roleList := strings.Fields(accessTokenClaims.Role)
+		roleSet := make([]cedar.Value, len(roleList))
+		for i, role := range roleList {
+			roleSet[i] = cedar.String(role)
 		}
 
 		principal := cedar.Entity{
@@ -143,11 +144,18 @@ func (p *CedarClient) FiberPolicyEvaluationMiddleware(action string) fiber.Handl
 					"iss":       cedar.String(accessTokenClaims.Issuer),
 					"sub":       cedar.String(accessTokenClaims.Subject),
 					"scopes":    cedar.NewSet(scopeSet...),
+					"roles":     cedar.NewSet(roleSet...),
 				},
 			),
 			Parents: cedar.NewEntityUIDSet(),
 			Tags:    cedar.NewRecord(cedar.RecordMap{}),
 		}
+
+		// NOT IMPLEMENTED: Resource identification is not yet implemented
+		resourceUID := cedar.NewEntityUID(
+			cedar.EntityType("Resource"),
+			cedar.String(""),
+		)
 
 		resource := cedar.Entity{
 			UID: resourceUID,
@@ -192,8 +200,8 @@ func (p *CedarClient) FiberPolicyEvaluationMiddleware(action string) fiber.Handl
 			span.End()
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"status_code": fiber.StatusUnauthorized,
-				"reason": "Unauthorized by policy",
-				"error":"Unauthorized by policy",
+				"reason": "Unauthorized by CEDAR policy: " + action,
+				"error":"Unauthorized by CEDAR policy",
 			})
 		} 
 
