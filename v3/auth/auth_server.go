@@ -31,11 +31,13 @@ const AccessTokenClaimsKey contextKey = "access_token_claims"
 
 type AuthService struct {
 	httpConfig *httpclient.HttpConfig
-	jwksUrl string
-	dryRun bool
-	headerkey string
-	publicKeys map[string]crypto.PublicKey
+	jwksUrl 	string
+	dryRun 		bool
+	headerkey 	string
+	publicKeys 	map[string]crypto.PublicKey
 	httpTimeout time.Duration
+	audience 	string
+	resourceMetadata string
 }
 
 const (
@@ -46,7 +48,7 @@ const (
 )
 
 // NewAuthService initializes a new instance of AuthService with the provided configuration.
-func NewAuthService(jwksUrl string, dryRun bool, headerkey string, httpTimeout time.Duration) *AuthService {
+func NewAuthService(jwksUrl string, dryRun bool, headerkey string, httpTimeout time.Duration, audience string, resourceMetadata string) *AuthService {
 	logger.Info(context.Background(), "Initializing AuthService SUCCESSFULLY")
 
 	httpConfig := &httpclient.HttpConfig{
@@ -63,8 +65,10 @@ func NewAuthService(jwksUrl string, dryRun bool, headerkey string, httpTimeout t
 		httpConfig:  httpConfig,
 		jwksUrl:     jwksUrl,
 		dryRun:      dryRun,
-		headerkey:    headerkey,
+		headerkey:   headerkey,
 		httpTimeout: httpTimeout,
+		audience:    audience,
+		resourceMetadata: resourceMetadata,
 	}
 }
 
@@ -153,7 +157,7 @@ func(a *AuthService) GetJwksUrl(ctx context.Context) ( error) {
 
 // VerifyToken verifies the given JWT token using the public keys stored in the AuthService. It returns an error if the token is invalid or cannot be verified.
 func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, error) {
-    
+
 	parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
         if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			logger.Error(ctx, "Unexpected signing method", zap.Any("alg", token.Header["alg"]))
@@ -196,6 +200,15 @@ func(a *AuthService) VerifyToken(ctx context.Context, token string) (*Claims, er
 	return claims, nil
 }
 
+func containsAudience(audiences []string, expectedAudience string) bool {
+	for _, audience := range audiences {
+		if audience == expectedAudience {
+			return true
+		}
+	}
+	return false
+}
+
 // FiberAuthorizationMiddleware returns a Fiber middleware handler that verifies the JWT token in the Authorization header. If the token is invalid or missing, it responds with a 401 Unauthorized status. If dryRun is enabled, it skips verification.
 func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 	return func(c fiber.Ctx) error {
@@ -211,6 +224,7 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 		c.Accepts("application/json")
 		token := c.Get(a.headerkey)
 		
+		// Check if the Authorization header is present.
 		if token == "" {
 			logger.Warn(c.Context(), "Authorization header is required")
 			span.RecordError(errors.New("authorization header required"))
@@ -220,11 +234,29 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 			)
 			span.End()
 
+			c.Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s"`, a.resourceMetadata,))
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Authorization header is required",
 			})
 		}
 
+		// Check if the Authorization header is long enough to contain "Bearer " prefix.
+		if len(token) < 7 {
+			logger.Warn(c.Context(), "Authorization header is too short")
+			span.RecordError(errors.New("authorization header too short"))
+            span.SetStatus(codes.Error, "invalid header")
+			span.SetAttributes(
+				attribute.Int("http.response.status_code", fiber.StatusUnauthorized),
+			)
+			span.End()
+
+			c.Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s"`, a.resourceMetadata,))
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Authorization header is too short",
+			})
+		}
+
+		// Remove "Bearer " prefix if present.
 		if len(token) > 7 && strings.EqualFold(token[:7], "bearer ") {
 			token = token[7:]
 		}
@@ -238,6 +270,7 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 				attribute.Int("http.response.status_code", fiber.StatusUnauthorized),
 			)
 			span.End()
+			c.Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s"`, a.resourceMetadata,))
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": err.Error(),
 			})
@@ -251,6 +284,20 @@ func (a *AuthService) FiberAuthorizationMiddleware() fiber.Handler {
 			JWTID:    claims.ID,
 			Scope:    claims.Scope,
 			Role:     claims.Role,
+		}
+
+		if !containsAudience(accessTokenClaims.Audience, a.audience) {
+			logger.Warn(ctx, "Invalid audience in access token, does not match expected audience")
+			span.RecordError(errors.New("invalid audience"))
+            span.SetStatus(codes.Error, "invalid audience")
+			span.SetAttributes(
+				attribute.Int("http.response.status_code", fiber.StatusUnauthorized),
+			)
+			span.End()
+			c.Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s"`, a.resourceMetadata,))
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid audience in access token, does not match expected audience",
+			})
 		}
 
 		// Store the access token claims in the context for downstream handlers.
